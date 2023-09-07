@@ -5,7 +5,7 @@
 Creation of a digital button accordion. *EK* could mean :
 
 - The author's initials.
-- *Electonic Keyboard*.
+- *Electronic Keyboard*.
 
 ## Parts
 
@@ -25,7 +25,7 @@ Creation of a digital button accordion. *EK* could mean :
 
 (and 3D printed)
 
-+ 35 button caps to fit the Cherry MX switches (*to be implemented*).
++ 35 button caps to fit the Cherry MX switches (*work in progress*).
 
 ### Arduino sketches
 
