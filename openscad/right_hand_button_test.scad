@@ -29,3 +29,7 @@ for (i = [0:2]) {
     translate([0,6*i-0.5,0])
     cube([12,1,1]);
 }
+// Origin indicator
+rotate(135,[0,0,1])
+translate([-0.5,0,0])
+cube([1,3.5,1]);
