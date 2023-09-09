@@ -636,7 +636,8 @@
     ]
   ],
   "text_variables": {
-    "TITLE": "EK Right hand 35 buttons",
+    "TITLE1": "[:ek:]~ right hand",
+    "TITLE2": "35 buttons",
     "VERSION": "1.0"
   }
 }

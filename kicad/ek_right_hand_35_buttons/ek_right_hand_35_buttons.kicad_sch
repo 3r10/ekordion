@@ -5,7 +5,7 @@
   (paper "A4")
 
   (title_block
-    (title "${TITLE}")
+    (title "${TITLE1}  - ${TITLE2}")
     (date "2023-08-15")
     (rev "${VERSION}")
   )
