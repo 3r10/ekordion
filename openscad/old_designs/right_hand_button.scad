@@ -2,16 +2,17 @@
 $fn=200;
 angle = 11; // 11
 buttonDiameter = 14.5;
-buttonHeight1 = 3; // scaled semi-sphere
-buttonHeight2 = 2; // cylindric part
-pinLength = 6.5;
-pinWidth  = 5;
-pinDepth = 4;
+buttonHeight1 = 3;
+buttonHeight2 = 1;
+pinDiameter = 5;
+pinHeight = 4;
 crossLength = 4;
 crossWidth = 1.3;
 crossDepth = 3.6;
 
 buttonRadius = buttonDiameter/2;
+pinRadius = pinDiameter/2;
+
 union() {
 	rotate(angle,[-1,0,0])
 	translate ([0,0,buttonHeight2])
@@ -25,11 +26,10 @@ union() {
 		translate([0,0,-buttonHeight2])
 		cylinder(buttonHeight2,buttonRadius,buttonRadius);
 	}
-	translate([0,0,-pinDepth])
+	translate([0,0,-pinHeight])
 	// interface with CHerry MX switch
 	difference() {
-		translate([-pinLength/2,-pinWidth/2,0]) 
-		cube([pinLength,pinWidth,pinDepth+pinWidth*tan(angle)]);
+		cylinder(pinHeight+pinRadius*tan(angle),pinRadius,pinRadius);
 		union() {
 			translate([-crossLength/2,-crossWidth/2,-crossDepth]) 
 			cube([crossLength,crossWidth,crossDepth*2]);
