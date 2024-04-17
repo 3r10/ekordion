@@ -36,9 +36,9 @@ difference() {
         }
         minkowski() {
             polygon([
-                [35,10+buttonPinRadius],
+                [35+2,10+buttonPinRadius],
                 [35+11.2,10+buttonPinRadius],
-                [35+11.2,22]
+                [35+11.2,21]
             ]);
             circle(buttonPinRadius);
         }
