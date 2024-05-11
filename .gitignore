@@ -31,3 +31,9 @@ fp-info-cache
 # Exported slicer files
 *.gcode
 *.data
+
+# ESP-IDF
+.vscode/
+build/
+sdkconfig
+sdkconfig.old
