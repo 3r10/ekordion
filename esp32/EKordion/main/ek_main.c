@@ -82,7 +82,10 @@ void app_main(void)
     change_functions[2] = &ek_reverb_change_damping;
     change_functions[3] = &ek_voices_change_bass_volume;
     change_functions[4] = &ek_voices_change_chords_volume;
-    change_functions[5] = &ek_voices_change_melody_volume;
+    change_functions[5] = &ek_voices_change_lead_volume;
+    change_functions[6] = &ek_voices_change_bass_table;
+    change_functions[7] = &ek_voices_change_chords_table;
+    change_functions[8] = &ek_voices_change_lead_table;
     
     ek_bluetooth_start(bluetooth_callback);
 

@@ -101,3 +101,51 @@ def write_wav(filename,table):
     for sample in table:
         f.write(struct.pack('<h',sample))
     f.close()
+
+
+H_FILE_HEADER = """
+#ifndef EK_TABLES_H_
+#define EK_TABLES_H_
+
+#include "ek_config.h"
+
+#define N_TABLES {}
+#define TABLE_N_SAMPLES {}
+#define TABLE_PHASE_SHIFT {}
+#define CHANGE_TABLE_OFFSET 256 // due to max bluetooth packet
+
+"""
+
+H_FILE_FOOTER = """
+static int16_t *tables[N_TABLES] = {{
+    {}
+}};
+
+#endif /* EK_TABLES_H_ */
+"""
+
+TABLE_TEMPLATE = """
+static {}int16_t {}[TABLE_N_SAMPLES]  =
+{{{}
+}};
+"""
+
+def table_to_string(name,table,is_const):
+    values_by_line = 32
+    data = ''
+    for i in range(len(table)):
+        if i%values_by_line==0:
+            data += '\n    '
+        data += '{:4d}, '.format(table[i])
+    return TABLE_TEMPLATE.format('const ' if is_const else '',name,data)
+
+def write_tables_for_c(tables):
+    n_tables = len(tables)
+    f = open('ek_tables.h','wt')
+    print(H_FILE_HEADER.format(n_tables,TABLE_N_SAMPLES,32-len(f'{TABLE_N_SAMPLES:b}')+1),file=f)
+    for i in range(n_tables):
+        name,table = tables[i]
+        print(f"// {name}",file=f)
+        print(table_to_string(f'table_{i:04d}',table,i!=0),file=f)
+    print(H_FILE_FOOTER.format(',\n    '.join(f'table_{i:04d}' for i in range(n_tables))),file=f)
+    f.close()
