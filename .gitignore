@@ -37,3 +37,6 @@ fp-info-cache
 build/
 sdkconfig
 sdkconfig.old
+
+# Python
+__pycache__
