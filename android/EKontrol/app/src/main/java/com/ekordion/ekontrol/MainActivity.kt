@@ -168,13 +168,13 @@ class MainActivity : ComponentActivity() {
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = " Volumes",fontWeight = FontWeight.Bold)
-            EKSlider(title = " bass", id = 5, initialValue = 200)
-            EKSlider(title = " chords", id = 6, initialValue = 200)
-            EKSlider(title = " lead", id = 7, initialValue = 200)
             Text(text = " Reverberation",fontWeight = FontWeight.Bold)
-            EKSlider(title = " damping", id = 0, initialValue = 192)
             EKSlider(title = " feedback", id = 1, initialValue = 224)
+            EKSlider(title = " damping", id = 2, initialValue = 192)
+            Text(text = " Volumes",fontWeight = FontWeight.Bold)
+            EKSlider(title = " bass", id = 3, initialValue = 200)
+            EKSlider(title = " chords", id = 4, initialValue = 200)
+            EKSlider(title = " lead", id = 5, initialValue = 200)
         }
     }
 }

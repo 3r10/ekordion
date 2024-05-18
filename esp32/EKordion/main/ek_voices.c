@@ -6,9 +6,13 @@
 #define N_RAMP_STEPS 32 // ~ 1 ms ramp
 #define CHANGE_TABLE_OFFSET 256 // due to max bluetooth packet
 
-static int16_t table_bass[TABLE_N_SAMPLES]  = {0};
-static int16_t table_chords[TABLE_N_SAMPLES]  = {0};
-static int16_t table_melody[TABLE_N_SAMPLES]  = {0};
+static int16_t custom_table[TABLE_N_SAMPLES]  = {0};
+static int16_t table_1[TABLE_N_SAMPLES]  = {0};
+static const int16_t table_2[TABLE_N_SAMPLES]  = {0};
+static const int16_t table_3[TABLE_N_SAMPLES]  = {0};
+static const int16_t table_4[TABLE_N_SAMPLES]  = {0};
+static const int16_t table_5[TABLE_N_SAMPLES]  = {0};
+static const int16_t table_6[TABLE_N_SAMPLES]  = {0};
 
 static uint8_t left_buttons_map[N_LEFT_BUTTONS] = {
      5, 0,17,12, 
@@ -40,9 +44,8 @@ static void table_init(int16_t table[TABLE_N_SAMPLES]) {
 }
 
 extern void ek_voices_init() {
-    table_init(table_bass);
-    table_init(table_chords);
-    table_init(table_melody);
+    table_init(custom_table);
+    table_init(table_1);
     for (int i_voice=0; i_voice<N_VOICES; i_voice++) {
         voices[i_voice].i_button = -1;
         voices[i_voice].phase_increment = 0;
@@ -50,32 +53,25 @@ extern void ek_voices_init() {
         voices[i_voice].ramp_step = 0;
         voices[i_voice].volume = 200;
     }
-    voices[0].table = table_bass;
+    voices[0].table = table_6;
+    voices[0].table = table_5;
+    voices[0].table = table_4;
+    voices[0].table = table_3;
+    voices[0].table = table_2;
+    voices[0].table = table_1;
     voices[0].vibrato_shift = 2;
-    voices[1].table = table_chords;
+    voices[1].table = table_1;
     voices[1].vibrato_shift = 2; 
     for (int i_voice=2; i_voice<N_VOICES; i_voice++) {
-        voices[i_voice].table = table_melody;
+        voices[i_voice].table = custom_table;
         voices[i_voice].vibrato_shift = 3;
     }
 }
 
-extern void ek_voices_change_bass_table(uint16_t length, uint8_t *data) {
+extern void ek_voices_change_custom_table(uint16_t length, uint8_t *data) {
     if (length!=2*CHANGE_TABLE_OFFSET+1) return;
     uint16_t offset = ((uint16_t)data[0])*CHANGE_TABLE_OFFSET;
-    memcpy(table_bass+offset,data+1,CHANGE_TABLE_OFFSET*sizeof(uint16_t));
-}
-
-extern void ek_voices_change_chords_table(uint16_t length, uint8_t *data) {
-    if (length!=2*CHANGE_TABLE_OFFSET+1) return;
-    uint16_t offset = ((uint16_t)data[0])*CHANGE_TABLE_OFFSET;
-    memcpy(table_chords+offset,data+1,CHANGE_TABLE_OFFSET*sizeof(uint16_t));
-}
-
-extern void ek_voices_change_melody_table(uint16_t length, uint8_t *data) {
-    if (length!=2*CHANGE_TABLE_OFFSET+1) return;
-    uint16_t offset = ((uint16_t)data[0])*CHANGE_TABLE_OFFSET;
-    memcpy(table_melody+offset,data+1,CHANGE_TABLE_OFFSET*sizeof(uint16_t));
+    memcpy(custom_table+offset,data+1,CHANGE_TABLE_OFFSET*sizeof(uint16_t));
 }
 
 extern void ek_voices_change_bass_volume(uint16_t length, uint8_t *data) {
