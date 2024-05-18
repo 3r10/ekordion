@@ -139,7 +139,7 @@ def table_to_string(name,table,is_const):
         data += '{:4d}, '.format(table[i])
     return TABLE_TEMPLATE.format('const ' if is_const else '',name,data)
 
-def write_tables_for_c(tables):
+def write_tables_for_esp32_synthesizer(tables):
     n_tables = len(tables)
     f = open('ek_tables.h','wt')
     print(H_FILE_HEADER.format(n_tables,TABLE_N_SAMPLES,32-len(f'{TABLE_N_SAMPLES:b}')+1),file=f)
@@ -149,3 +149,11 @@ def write_tables_for_c(tables):
         print(table_to_string(f'table_{i:04d}',table,i!=0),file=f)
     print(H_FILE_FOOTER.format(',\n    '.join(f'table_{i:04d}' for i in range(n_tables))),file=f)
     f.close()
+
+def print_tables_for_android_control(tables):
+    for i in range(len(tables)):
+        print(f'"{tables[i][0]}"',end="")
+        if i<len(tables)-1:
+            print(",",end="")
+        if (i+1)%8==0:
+            print()

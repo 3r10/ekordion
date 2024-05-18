@@ -42,6 +42,10 @@ class MainActivity : ComponentActivity() {
     // https://community.appinventor.mit.edu/t/bluetooth-classic-ble-uuid-and-chatgpt-answer/90767
     private val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     private var bluetoothSocket : BluetoothSocket? = null
+    private val wavetables = arrayOf(
+        "Custom","Sine","Sine o4","Sine o8","Square","PWM 20","Sawtooth","Sawtooth o4",
+        "Sawtooth o8","Additive1","Additive1 o4","Additive1 o8","Additive2","Additive2 o4","Additive2 o8","Flute"
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,10 +114,28 @@ class MainActivity : ComponentActivity() {
                 value = newValue.toInt()
                 bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),value.toByte()))
             },
-            onValueChangeFinished = {
-            },
             valueRange = 0f..255f,
-            steps = 256, // This adds 4 steps in between the min and max values
+            steps = 256,
+            modifier = Modifier.height(24.dp)
+        )
+
+    }
+
+    @Composable
+    private fun EKTablePicker(title: String, id:Int) {
+        var value by remember { mutableIntStateOf(0) }
+        Text(
+            text = title+" : "+wavetables[value],
+            fontStyle = FontStyle.Italic
+        )
+        Slider(
+            value = value.toFloat(),
+            onValueChange = { newValue ->
+                value = newValue.toInt()
+                bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),value.toByte()))
+            },
+            valueRange = 0f..(wavetables.size-1).toFloat(),
+            steps = wavetables.size,
             modifier = Modifier.height(24.dp)
         )
 
@@ -169,12 +191,16 @@ class MainActivity : ComponentActivity() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = " Reverberation",fontWeight = FontWeight.Bold)
-            EKSlider(title = " feedback", id = 1, initialValue = 224)
-            EKSlider(title = " damping", id = 2, initialValue = 192)
+            EKSlider(title = " Feedback", id = 1, initialValue = 224)
+            EKSlider(title = " Damping", id = 2, initialValue = 192)
             Text(text = " Volumes",fontWeight = FontWeight.Bold)
-            EKSlider(title = " bass", id = 3, initialValue = 200)
-            EKSlider(title = " chords", id = 4, initialValue = 200)
-            EKSlider(title = " lead", id = 5, initialValue = 200)
+            EKSlider(title = " Bass", id = 3, initialValue = 200)
+            EKSlider(title = " Chords", id = 4, initialValue = 200)
+            EKSlider(title = " Lead", id = 5, initialValue = 200)
+            Text(text = " Wavetables",fontWeight = FontWeight.Bold)
+            EKTablePicker(title = " Bass", id = 6)
+            EKTablePicker(title = " Chords", id = 7)
+            EKTablePicker(title = " Lead", id = 8)
         }
     }
 }
