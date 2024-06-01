@@ -96,6 +96,10 @@ def apply_iir_filter(table,numerator,denominator=[1]):
 
 # NON LINEAR
 
+def apply_quantizer(table,n_bits):
+    factor = max(abs(x) for x in table)/(1<<n_bits)
+    return [float(int(x/factor)*factor) for x in table]
+
 def apply_overdrive(table,factor):
     maxi = max(abs(x) for x in table)
     return [math.atan(factor*x/maxi)*2/math.pi for x in table]
