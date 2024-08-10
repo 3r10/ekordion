@@ -4,15 +4,6 @@
 
 #define N_RAMP_STEPS 32 // ~ 1 ms ramp
 
-static uint8_t left_buttons_map[N_LEFT_BUTTONS] = {
-     5, 0,17,12, 
-     7, 2,19,14,
-     9, 4,21,16,
-    11, 6,23,18,
-     1, 8,13,20, 
-     3,10,15,22
-};
-
 typedef struct voice_s {
     int16_t i_button;
     uint32_t phase_increment;
@@ -137,22 +128,20 @@ extern void right_button_off(int i_button) {
 }
 
 extern void left_button_on(int i_button) {
-    int i_note = left_buttons_map[i_button];
-    ESP_LOGI(TAG, "Left button on : %d (%d)",i_button,i_note);
-    if (i_note<12) {
+    ESP_LOGI(TAG, "Left button on : %d",i_button);
+    if (i_button<12) {
         voices[0].i_button = i_button;
-        voices[0].phase_increment = 21500000*pow(2.0f,(46+i_note-69)/12.0f);
+        voices[0].phase_increment = 21500000*pow(2.0f,(46+i_button-69)/12.0f);
     }
     else {
         voices[1].i_button = i_button;
-        voices[1].phase_increment = 21500000*pow(2.0f,(46+i_note-69)/12.0f);
+        voices[1].phase_increment = 21500000*pow(2.0f,(46+i_button-69)/12.0f);
     }
 }
 
 extern void left_button_off(int i_button) {
-    int i_note = left_buttons_map[i_button];
-    ESP_LOGI(TAG, "Left button off : %d (%d)",i_button,i_note);
-    if (i_note<12 && voices[0].i_button==i_button) {
+    ESP_LOGI(TAG, "Left button off : %d",i_button);
+    if (i_button<12 && voices[0].i_button==i_button) {
         voices[0].i_button = -1;
         voices[0].phase_increment = 0;
     }
