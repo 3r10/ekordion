@@ -1,10 +1,12 @@
 package com.ekordion.ekontrol
 import android.Manifest
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -12,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,6 +49,13 @@ class MainActivity : ComponentActivity() {
         "Custom","Sine","Sine o4","Sine o8","Square","PWM 20","Sawtooth","Sawtooth o4",
         "Sawtooth o8","Additive1","Additive1 o4","Additive1 o8","Additive2","Additive2 o4","Additive2 o8","Flute"
     )
+    private val registerForResult = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            Toast.makeText(this, "Bluetooth is now enabled", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +80,8 @@ class MainActivity : ComponentActivity() {
 
     private fun connectToDevice(address: String) {
         if (bluetoothAdapter==null || !bluetoothAdapter!!.isEnabled) {
-            Toast.makeText(this, "Check before", Toast.LENGTH_SHORT).show()
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            registerForResult.launch(enableBtIntent)
             return
         }
         val device: BluetoothDevice = bluetoothAdapter!!.getRemoteDevice(address)
