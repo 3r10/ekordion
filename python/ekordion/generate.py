@@ -10,8 +10,16 @@ def generate_white_noise():
 def generate_sine(multiplier):
     return [math.sin(2*math.pi*multiplier*i/TABLE_N_SAMPLES) for i in range(TABLE_N_SAMPLES)]
 
+def generate_triangle(multiplier,increase=0.5):
+    return [
+        2*((multiplier*i)%TABLE_N_SAMPLES/TABLE_N_SAMPLES/increase)-1
+        if ((multiplier*i)%TABLE_N_SAMPLES)<increase*TABLE_N_SAMPLES
+        else 1-2*(((multiplier*i)%TABLE_N_SAMPLES-increase*TABLE_N_SAMPLES)/TABLE_N_SAMPLES/(1-increase))
+        for i in range(TABLE_N_SAMPLES)
+    ]
+
 def generate_sawtooth(multiplier):
-    return [2*((multiplier*i)%TABLE_N_SAMPLES)/TABLE_N_SAMPLES-1 for i in range(TABLE_N_SAMPLES)]
+    return generate_triangle(multiplier,1)
 
 def generate_pwm(multiplier,duty=0.5):
     # https://en.wikipedia.org/wiki/Pulse-width_modulation

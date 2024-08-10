@@ -46,8 +46,9 @@ class MainActivity : ComponentActivity() {
     private val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
     private var bluetoothSocket : BluetoothSocket? = null
     private val wavetables = arrayOf(
-        "Custom","Sine","Sine o4","Sine o8","Square","PWM 20","Sawtooth","Sawtooth o4",
-        "Sawtooth o8","Additive1","Additive1 o4","Additive1 o8","Additive2","Additive2 o4","Additive2 o8","Flute"
+        "Custom","Sine","Sine o4","Sine o8","Square","PWM 20",
+        "Triangle 50","Triangle 80","Triangle 95","Triangle 99","Sawtooth","Sawtooth o4","Sawtooth o8",
+        "Additive1","Additive1 o4","Additive1 o8","Additive2","Additive2 o4","Additive2 o8","Flute"
     )
     private val registerForResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -179,6 +180,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Text("ESP 1")
                 }
+                /*
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = { connectToDevice("A8:42:E3:55:DE:5A") },
@@ -186,6 +188,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     Text("ESP 2")
                 }
+                */
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = { stopConnection() },
