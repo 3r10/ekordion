@@ -6,6 +6,7 @@
 
 typedef struct voice_s {
     int16_t i_button;
+    uint8_t base_midi_note;
     uint32_t phase_increment;
     uint32_t phase;
     uint16_t ramp_step;
@@ -18,20 +19,26 @@ static voice_t voices[N_VOICES];
 static int16_t vibrato = 0;
 static int16_t vibrato_step = 200;
 
+static void compute_phase_increment(voice_t *voice) {
+    uint8_t midi_note = voice->base_midi_note+voice->i_button;
+    voice->phase_increment = 21500000*pow(2.0f,(midi_note-69)/12.0f);
+}
+
 extern void ek_voices_init() {
     for (int i_voice=0; i_voice<N_VOICES; i_voice++) {
         voices[i_voice].i_button = -1;
         voices[i_voice].phase_increment = 0;
         voices[i_voice].phase = 0;
         voices[i_voice].ramp_step = 0;
+        voices[i_voice].table = tables[0];
         voices[i_voice].volume = 200;
     }
-    voices[0].table = tables[0];
+    voices[0].base_midi_note = LEFT_BASE_MIDI_NOTE;
     voices[0].vibrato_shift = 2;
-    voices[1].table = tables[0];
+    voices[1].base_midi_note = LEFT_BASE_MIDI_NOTE;
     voices[1].vibrato_shift = 2; 
     for (int i_voice=2; i_voice<N_VOICES; i_voice++) {
-        voices[i_voice].table = tables[0];
+        voices[i_voice].base_midi_note = RIGHT_BASE_MIDI_NOTE;
         voices[i_voice].vibrato_shift = 3;
     }
 }
@@ -56,6 +63,29 @@ extern void ek_voices_change_lead_volume(uint16_t length, uint8_t *data) {
     if (length!=1) return;
     for (int i_voice=2; i_voice<N_VOICES; i_voice++) {
         voices[i_voice].volume = data[0];
+    }
+}
+
+extern void ek_voices_change_bass_octave(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    if (data[0]>4) return;
+    voices[0].base_midi_note = LEFT_BASE_MIDI_NOTE-24+12*data[0];
+    compute_phase_increment(&voices[0]);
+}
+
+extern void ek_voices_change_chords_octave(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    if (data[0]>4) return;
+    voices[1].base_midi_note = LEFT_BASE_MIDI_NOTE-24+12*data[0];
+    compute_phase_increment(&voices[1]);
+}
+
+extern void ek_voices_change_lead_octave(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    if (data[0]>4) return;
+    for (int i_voice=2; i_voice<N_VOICES; i_voice++) {
+        voices[i_voice].base_midi_note = RIGHT_BASE_MIDI_NOTE-24+12*data[0];
+        compute_phase_increment(&voices[i_voice]);
     }
 }
 
@@ -107,15 +137,7 @@ extern void right_button_on(int i_button) {
     }
     ESP_LOGI(TAG, "Right button on : %d",i_button);
     voices[i_voice].i_button = i_button;
-    voices[i_voice].phase_increment = 21500000*pow(2.0f,(59+i_button-69)/12.0f);
-    
-    // Microtonal
-    // if (i_button%12==2) {
-    //     voices[i_voice].phase_increment = 21500000*pow(2.0f,(58.5+i_button-69)/12.0f);
-    // }
-    // if (i_button%12==6) {
-    //     voices[i_voice].phase_increment = 21500000*pow(2.0f,(59.5+i_button-69)/12.0f);
-    // }
+    compute_phase_increment(&voices[i_voice]);
 }
 
 extern void right_button_off(int i_button) {
@@ -131,11 +153,11 @@ extern void left_button_on(int i_button) {
     ESP_LOGI(TAG, "Left button on : %d",i_button);
     if (i_button<12) {
         voices[0].i_button = i_button;
-        voices[0].phase_increment = 21500000*pow(2.0f,(46+i_button-69)/12.0f);
+        compute_phase_increment(&voices[0]);
     }
     else {
         voices[1].i_button = i_button;
-        voices[1].phase_increment = 21500000*pow(2.0f,(46+i_button-69)/12.0f);
+        compute_phase_increment(&voices[1]);
     }
 }
 

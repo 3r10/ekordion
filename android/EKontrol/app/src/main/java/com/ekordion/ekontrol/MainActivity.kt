@@ -134,6 +134,26 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
+    private fun EKOctavePicker(title: String, id:Int, initialValue: Int) {
+        var value by remember { mutableIntStateOf(initialValue) }
+        Text(
+            text = title,
+            fontStyle = FontStyle.Italic
+        )
+        Slider(
+            value = value.toFloat(),
+            onValueChange = { newValue ->
+                value = newValue.toInt()
+                bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),(value+2).toByte()))
+            },
+            valueRange = -2f..2f,
+            steps = 5,
+            modifier = Modifier.height(24.dp)
+        )
+
+    }
+
+    @Composable
     private fun EKTablePicker(title: String, id:Int) {
         var value by remember { mutableIntStateOf(0) }
         Text(
@@ -211,10 +231,14 @@ class MainActivity : ComponentActivity() {
             EKSlider(title = " Bass", id = 3, initialValue = 200)
             EKSlider(title = " Chords", id = 4, initialValue = 200)
             EKSlider(title = " Lead", id = 5, initialValue = 200)
+            Text(text = " Octaves",fontWeight = FontWeight.Bold)
+            EKOctavePicker(title = " Bass", id = 6, initialValue = 0)
+            EKOctavePicker(title = " Chords", id = 7, initialValue = 0)
+            EKOctavePicker(title = " Lead", id = 8, initialValue = 0)
             Text(text = " Wavetables",fontWeight = FontWeight.Bold)
-            EKTablePicker(title = " Bass", id = 6)
-            EKTablePicker(title = " Chords", id = 7)
-            EKTablePicker(title = " Lead", id = 8)
+            EKTablePicker(title = " Bass", id = 9)
+            EKTablePicker(title = " Chords", id = 10)
+            EKTablePicker(title = " Lead", id = 11)
         }
     }
 }

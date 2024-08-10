@@ -36,5 +36,7 @@ static const char* TAG = "EKordion";
 #define N_RIGHT_BUTTONS 40
 #define N_LEFT_BUTTONS 24
 #define N_VOICES 10
+#define LEFT_BASE_MIDI_NOTE  46 // Bb2
+#define RIGHT_BASE_MIDI_NOTE 59 // B3
 
 #endif
