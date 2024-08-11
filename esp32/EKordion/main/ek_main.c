@@ -14,7 +14,8 @@ uint16_t time_counter = 0;
 #endif
 
 /* BUFFERS */
-static int32_t dry_int32_buffer[DMA_BUF_LEN];
+static int32_t int32_dry_buffer[DMA_BUF_LEN];
+static int32_t int32_wet_buffer[DMA_BUF_LEN];
 static int32_t output_l_int32_buffer[DMA_BUF_LEN];
 static int32_t output_r_int32_buffer[DMA_BUF_LEN];
 
@@ -29,8 +30,8 @@ static void write_buffer()
     time_before_s = time_stamp.tv_sec + time_stamp.tv_usec / 1000000.0;
 #endif
 
-    ek_voices_compute(dry_int32_buffer);
-    ek_reverb_compute(dry_int32_buffer,output_l_int32_buffer,output_r_int32_buffer);
+    ek_channels_compute(int32_dry_buffer,int32_wet_buffer);
+    ek_reverb_compute(int32_dry_buffer,int32_wet_buffer,output_l_int32_buffer,output_r_int32_buffer);
 
 #if (MEASURE_CPU_USAGE == true)
     gettimeofday(&time_stamp,NULL);
@@ -82,10 +83,12 @@ void app_main(void)
     change_functions[ 2] = &ek_voices_change_lfo_frequency;
     change_functions[ 3] = &ek_reverb_change_feedback;
     change_functions[ 4] = &ek_reverb_change_damping;
-    change_functions[ 5] = &ek_voices_change_volume;
-    change_functions[ 6] = &ek_voices_change_octave;
-    change_functions[ 7] = &ek_voices_change_table;
+    change_functions[ 5] = &ek_reverb_change_volume;
+    change_functions[ 6] = &ek_voices_change_table;
+    change_functions[ 7] = &ek_voices_change_octave;
     change_functions[ 8] = &ek_voices_change_vibrato;
+    change_functions[ 9] = &ek_voices_change_dry_volume;
+    change_functions[10] = &ek_voices_change_wet_volume;
     
     ek_bluetooth_start(bluetooth_callback);
 

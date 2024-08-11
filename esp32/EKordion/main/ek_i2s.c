@@ -36,8 +36,8 @@ extern void ek_i2s_write(
     int32_t output_r_int32_buffer[DMA_BUF_LEN]
 ) {
     for (int i=0; i<DMA_BUF_LEN; i++) {
-        output_uint16_buffer[i<<1] = (output_l_int32_buffer[i]>>7)+(1<<15);
-        output_uint16_buffer[(i<<1)+1] = (output_r_int32_buffer[i]>>7)+(1<<15);
+        output_uint16_buffer[i<<1] = (output_l_int32_buffer[i]>>16)+(1<<15);
+        output_uint16_buffer[(i<<1)+1] = (output_r_int32_buffer[i]>>16)+(1<<15);
     }
     i2s_write(I2S_NUM, output_uint16_buffer, sizeof(output_uint16_buffer), &bytes_written, portMAX_DELAY);
 }

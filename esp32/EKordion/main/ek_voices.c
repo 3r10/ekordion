@@ -15,7 +15,8 @@ typedef struct channel_s {
     int8_t octave;
     int16_t *table;
     uint8_t vibrato;
-    uint8_t volume;
+    uint8_t dry_volume;
+    uint8_t wet_volume;
     uint8_t i_voice_start;
     uint8_t i_voice_end;
 } channel_t;
@@ -25,7 +26,7 @@ typedef struct voice_s {
     uint32_t phase_increment;
     uint32_t phase;
     uint16_t ramp_step;
-    channel_t *channel;
+    uint8_t i_channel;
 } voice_t;
 
 static lfo_t lfo;
@@ -33,7 +34,8 @@ static channel_t channels[N_CHANNELS];
 static voice_t voices[N_VOICES];
 
 static void compute_phase_increment(voice_t *voice) {
-    uint8_t midi_note = voice->channel->base_midi_note+12*voice->channel->octave+voice->i_button;
+    channel_t *channel = &channels[voice->i_channel];
+    uint8_t midi_note =channel->base_midi_note+12*channel->octave+voice->i_button;
     voice->phase_increment = 21500000*pow(2.0f,(midi_note-69)/12.0f);
 }
 
@@ -59,10 +61,11 @@ extern void ek_voices_init() {
         uint8_t i_start = channels[i_channel].i_voice_start;
         uint8_t i_end = channels[i_channel].i_voice_end;
         channels[i_channel].table = tables[0];
-        channels[i_channel].volume = 200;
+        channels[i_channel].dry_volume = 200;
+        channels[i_channel].wet_volume = 100;
         channels[i_channel].octave = 0;
         for (int i_voice=i_start; i_voice<i_end; i_voice++) {
-            voices[i_voice].channel = &channels[i_channel];
+            voices[i_voice].i_channel = i_channel;
         }
     }
     // VOICES
@@ -80,13 +83,22 @@ extern void ek_voices_change_custom_table(uint16_t length, uint8_t *data) {
     memcpy(tables[0]+offset,data+1,CHANGE_TABLE_OFFSET*sizeof(uint16_t));
 }
 
-extern void ek_voices_change_volume(uint16_t length, uint8_t *data) {
+extern void ek_voices_change_dry_volume(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
 
     if (length!=2) return;
     i_channel = data[0];
     if (i_channel>=N_CHANNELS) return;
-    channels[i_channel].volume = data[1];
+    channels[i_channel].dry_volume = data[1];
+}
+
+extern void ek_voices_change_wet_volume(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    channels[i_channel].wet_volume = data[1];
 }
 
 extern void ek_voices_change_octave(uint16_t length, uint8_t *data) {
@@ -178,11 +190,12 @@ extern void button_off(int i_channel,int i_button) {
     voices[i_voice].i_button = -1;
 }
 
-extern void ek_voices_compute(int32_t output_int32_buffer[DMA_BUF_LEN]) {
+static void ek_voices_compute(int32_t output_int32_buffers[N_CHANNELS][DMA_BUF_LEN]) {
     int16_t lfo_buffer[DMA_BUF_LEN];
+    uint8_t i_channel;
     channel_t *channel;
     uint32_t phase = 0, phase_increment = 0;
-    uint8_t on_off,vibrato,volume;
+    uint8_t on_off,vibrato;
     const int16_t *table;
     uint16_t ramp_step;
 
@@ -190,16 +203,19 @@ extern void ek_voices_compute(int32_t output_int32_buffer[DMA_BUF_LEN]) {
     phase = lfo.phase;
     table = lfo.table;
     for (int i=0; i<DMA_BUF_LEN; i++) {
-        output_int32_buffer[i] = 0;
+        for (int i_channel=0; i_channel<N_CHANNELS; i_channel++) {
+            output_int32_buffers[i_channel][i] = 0;
+
+        }
         lfo_buffer[i] = table[phase>>TABLE_PHASE_SHIFT];
         phase += phase_increment;
     }
     lfo.phase = phase;
     for (int i_voice=0; i_voice<N_VOICES; i_voice++) {
-        channel = voices[i_voice].channel;
+        i_channel = voices[i_voice].i_channel;
+        channel = &channels[i_channel];
         on_off = voices[i_voice].i_button!=-1;
         ramp_step = voices[i_voice].ramp_step;
-        volume = channel->volume;
         if (on_off || ramp_step) {
             phase_increment = voices[i_voice].phase_increment;
             phase = voices[i_voice].phase;
@@ -212,11 +228,32 @@ extern void ek_voices_compute(int32_t output_int32_buffer[DMA_BUF_LEN]) {
                 if (!on_off && ramp_step>0) {
                     ramp_step--;
                 }
-                output_int32_buffer[i] += table[phase>>TABLE_PHASE_SHIFT]*ramp_step*volume>>10;
+                output_int32_buffers[i_channel][i] += table[phase>>TABLE_PHASE_SHIFT]*ramp_step;
                 phase += phase_increment+(((lfo_buffer[i]*(int32_t)(phase_increment>>20))*vibrato)>>8);
             }
             voices[i_voice].ramp_step = ramp_step;
             voices[i_voice].phase = phase;
+        }
+    }
+}
+
+extern void ek_channels_compute(
+    int32_t output_dry_int32_buffer[DMA_BUF_LEN],
+    int32_t output_wet_int32_buffer[DMA_BUF_LEN]
+) {
+    int32_t output_int32_buffers[N_CHANNELS][DMA_BUF_LEN];
+
+    // CHANNELS BEFORE EFFECTS
+    ek_voices_compute(output_int32_buffers);
+    // EFFECTS
+
+    // FINAL MIX
+    for (uint8_t i=0; i<DMA_BUF_LEN; i++) {
+        output_dry_int32_buffer[i] = 0;
+        output_wet_int32_buffer[i] = 0;
+        for (uint8_t i_channel=0; i_channel<N_CHANNELS; i_channel++) {
+            output_dry_int32_buffer[i] += output_int32_buffers[i_channel][i]*channels[i_channel].dry_volume;
+            output_wet_int32_buffer[i] += output_int32_buffers[i_channel][i]*channels[i_channel].wet_volume;
         }
     }
 }
