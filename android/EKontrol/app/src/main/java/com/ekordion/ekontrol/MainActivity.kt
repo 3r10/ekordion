@@ -1,6 +1,5 @@
 package com.ekordion.ekontrol
 import android.Manifest
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -23,7 +22,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.Slider
@@ -175,11 +177,17 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun EKInterface() {
+        val scrollState = rememberScrollState()
+
         Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.Start
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(end = 64.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.Start
         ) {
+            Spacer(modifier = Modifier.height(64.dp))
             Text(
                 text = " Bluetooth",
                 fontSize = 16.sp,
@@ -227,6 +235,9 @@ class MainActivity : ComponentActivity() {
             Text(text = " Reverberation",fontWeight = FontWeight.Bold)
             EKSlider(title = " Feedback", id = 1, initialValue = 224)
             EKSlider(title = " Damping", id = 2, initialValue = 192)
+            Text(text = "LFO",fontWeight = FontWeight.Bold)
+            EKTablePicker(title = " Table", id = 12)
+            EKSlider(title = " Frequence", id = 13, initialValue = 50)
             Text(text = " Volumes",fontWeight = FontWeight.Bold)
             EKSlider(title = " Bass", id = 3, initialValue = 200)
             EKSlider(title = " Chords", id = 4, initialValue = 200)
@@ -239,6 +250,11 @@ class MainActivity : ComponentActivity() {
             EKTablePicker(title = " Bass", id = 9)
             EKTablePicker(title = " Chords", id = 10)
             EKTablePicker(title = " Lead", id = 11)
+            Text(text = " Vibrato",fontWeight = FontWeight.Bold)
+            EKSlider(title = " Bass", id = 14, initialValue = 0)
+            EKSlider(title = " Chords", id = 15, initialValue = 0)
+            EKSlider(title = " Lead", id = 16, initialValue = 50)
+            Spacer(modifier = Modifier.height(64.dp))
         }
     }
 }

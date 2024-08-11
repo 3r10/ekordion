@@ -14,6 +14,11 @@ void ek_voices_change_lead_octave(uint16_t length, uint8_t *data);
 void ek_voices_change_bass_table(uint16_t length, uint8_t *data);
 void ek_voices_change_chords_table(uint16_t length, uint8_t *data);
 void ek_voices_change_lead_table(uint16_t length, uint8_t *data);
+void ek_voices_change_lfo_frequency(uint16_t length, uint8_t *data);
+void ek_voices_change_lfo_table(uint16_t length, uint8_t *data);
+void ek_voices_change_bass_vibrato(uint16_t length, uint8_t *data);
+void ek_voices_change_chords_vibrato(uint16_t length, uint8_t *data);
+void ek_voices_change_lead_vibrato(uint16_t length, uint8_t *data);
 
 void left_button_on(int i_button);
 void left_button_off(int i_button);

@@ -4,6 +4,12 @@
 
 #define N_RAMP_STEPS 32 // ~ 1 ms ramp
 
+typedef struct lfo_s {
+    uint32_t phase_increment;
+    uint32_t phase;
+    int16_t *table;
+} lfo_t;
+
 typedef struct voice_s {
     int16_t i_button;
     uint8_t base_midi_note;
@@ -11,13 +17,12 @@ typedef struct voice_s {
     uint32_t phase;
     uint16_t ramp_step;
     int16_t *table;
-    uint8_t vibrato_shift;
+    uint8_t vibrato;
     uint8_t volume;
 } voice_t;
 
+static lfo_t lfo;
 static voice_t voices[N_VOICES];
-static int16_t vibrato = 0;
-static int16_t vibrato_step = 200;
 
 static void compute_phase_increment(voice_t *voice) {
     uint8_t midi_note = voice->base_midi_note+voice->i_button;
@@ -25,6 +30,9 @@ static void compute_phase_increment(voice_t *voice) {
 }
 
 extern void ek_voices_init() {
+    lfo.phase_increment = 0;
+    lfo.phase = 0;
+    lfo.table = tables[1]; // Sine wave
     for (int i_voice=0; i_voice<N_VOICES; i_voice++) {
         voices[i_voice].i_button = -1;
         voices[i_voice].phase_increment = 0;
@@ -34,12 +42,12 @@ extern void ek_voices_init() {
         voices[i_voice].volume = 200;
     }
     voices[0].base_midi_note = LEFT_BASE_MIDI_NOTE;
-    voices[0].vibrato_shift = 2;
+    voices[0].vibrato = 10;
     voices[1].base_midi_note = LEFT_BASE_MIDI_NOTE;
-    voices[1].vibrato_shift = 2; 
+    voices[1].vibrato = 10; 
     for (int i_voice=2; i_voice<N_VOICES; i_voice++) {
         voices[i_voice].base_midi_note = RIGHT_BASE_MIDI_NOTE;
-        voices[i_voice].vibrato_shift = 3;
+        voices[i_voice].vibrato = 50;
     }
 }
 
@@ -109,6 +117,35 @@ extern void ek_voices_change_lead_table(uint16_t length, uint8_t *data) {
     }
 }
 
+extern void ek_voices_change_lfo_frequency(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    lfo.phase_increment = 3820*data[0];
+}
+
+extern void ek_voices_change_lfo_table(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    if (data[0]>=N_TABLES) return;
+    lfo.table = tables[data[0]];
+}
+
+extern void ek_voices_change_bass_vibrato(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    voices[0].vibrato = data[0];
+}
+
+extern void ek_voices_change_chords_vibrato(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    voices[1].vibrato = data[0];
+}
+
+extern void ek_voices_change_lead_vibrato(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    for (int i_voice=2; i_voice<N_VOICES; i_voice++) {
+        voices[i_voice].vibrato = data[0];
+    }
+}
+
+
 static int search_active_voice(int i_button) {
     for (int i_voice=2; i_voice<N_VOICES; i_voice++) {
         if (voices[i_voice].i_button==i_button) {
@@ -174,14 +211,21 @@ extern void left_button_off(int i_button) {
 }
 
 extern void ek_voices_compute(int32_t output_int32_buffer[DMA_BUF_LEN]) {
+    int16_t lfo_buffer[DMA_BUF_LEN];
     uint32_t phase = 0, phase_increment = 0;
-    uint8_t on_off,vibrato_shift,volume;
+    uint8_t on_off,vibrato,volume;
     const int16_t *table;
     uint16_t ramp_step;
 
+    phase_increment = lfo.phase_increment;
+    phase = lfo.phase;
+    table = lfo.table;
     for (int i=0; i<DMA_BUF_LEN; i++) {
         output_int32_buffer[i] = 0;
+        lfo_buffer[i] = table[phase>>TABLE_PHASE_SHIFT];
+        phase += phase_increment;
     }
+    lfo.phase = phase;
     for (int i_voice=0; i_voice<N_VOICES; i_voice++) {
         on_off = voices[i_voice].i_button!=-1;
         ramp_step = voices[i_voice].ramp_step;
@@ -190,7 +234,7 @@ extern void ek_voices_compute(int32_t output_int32_buffer[DMA_BUF_LEN]) {
             phase_increment = voices[i_voice].phase_increment;
             phase = voices[i_voice].phase;
             table = voices[i_voice].table;
-            vibrato_shift = voices[i_voice].vibrato_shift;
+            vibrato = voices[i_voice].vibrato;
             for (int i=0; i<DMA_BUF_LEN; i++) {
                 if (on_off && ramp_step<N_RAMP_STEPS) {
                     ramp_step++;
@@ -199,17 +243,10 @@ extern void ek_voices_compute(int32_t output_int32_buffer[DMA_BUF_LEN]) {
                     ramp_step--;
                 }
                 output_int32_buffer[i] += table[phase>>TABLE_PHASE_SHIFT]*ramp_step*volume>>10;
-                phase += phase_increment+(vibrato<<vibrato_shift);
+                phase += phase_increment+(((lfo_buffer[i]*(int32_t)(phase_increment>>20))*voices[i_voice].vibrato)>>8);
             }
-
             voices[i_voice].ramp_step = ramp_step;
             voices[i_voice].phase = phase;
         }
-    }
-    vibrato += vibrato_step;
-    if (vibrato<0) {
-        vibrato -= vibrato_step;
-        vibrato_step = -vibrato_step;
-        vibrato += vibrato_step;
     }
 }

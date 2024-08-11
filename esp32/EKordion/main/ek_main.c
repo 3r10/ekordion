@@ -18,7 +18,7 @@ static int32_t dry_int32_buffer[DMA_BUF_LEN];
 static int32_t output_l_int32_buffer[DMA_BUF_LEN];
 static int32_t output_r_int32_buffer[DMA_BUF_LEN];
 
-#define N_CHANGE_FUNCTIONS 16
+#define N_CHANGE_FUNCTIONS 128
 static void (*change_functions[N_CHANGE_FUNCTIONS])(uint16_t length, uint8_t *data) = {0};
 
 static void write_buffer()
@@ -89,6 +89,11 @@ void app_main(void)
     change_functions[ 9] = &ek_voices_change_bass_table;
     change_functions[10] = &ek_voices_change_chords_table;
     change_functions[11] = &ek_voices_change_lead_table;
+    change_functions[12] = &ek_voices_change_lfo_table;
+    change_functions[13] = &ek_voices_change_lfo_frequency;
+    change_functions[14] = &ek_voices_change_bass_vibrato;
+    change_functions[15] = &ek_voices_change_chords_vibrato;
+    change_functions[16] = &ek_voices_change_lead_vibrato;
     
     ek_bluetooth_start(bluetooth_callback);
 
