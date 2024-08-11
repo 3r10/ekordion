@@ -32,11 +32,18 @@ static const char* TAG = "EKordion";
 #define GPIO_LEFT_SERIAL  GPIO_NUM_4
 #define GPIO_RIGHT_SERIAL GPIO_NUM_16
 
+/* KEYBOARD */
+#define N_RIGHT_SWITCHES 40
+#define N_LEFT_SWITCHES 24
+
 /* SYNTH */
-#define N_RIGHT_BUTTONS 40
-#define N_LEFT_BUTTONS 24
-#define N_VOICES 10
-#define LEFT_BASE_MIDI_NOTE  46 // Bb2
-#define RIGHT_BASE_MIDI_NOTE 59 // B3
+#define N_CHANNELS 3
+#define N_VOICES 12
+#define BASS_CHANNEL   0
+#define CHORDS_CHANNEL 1
+#define LEAD_CHANNEL   2
+#define BASS_BASE_MIDI_NOTE   46 // Bb2
+#define CHORDS_BASE_MIDI_NOTE 58 // Bb3
+#define LEAD_BASE_MIDI_NOTE  59 // B3
 
 #endif

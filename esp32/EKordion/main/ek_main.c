@@ -78,22 +78,14 @@ void app_main(void)
         change_functions[i] = NULL;
     }
     change_functions[ 0] = &ek_voices_change_custom_table;
-    change_functions[ 1] = &ek_reverb_change_feedback;
-    change_functions[ 2] = &ek_reverb_change_damping;
-    change_functions[ 3] = &ek_voices_change_bass_volume;
-    change_functions[ 4] = &ek_voices_change_chords_volume;
-    change_functions[ 5] = &ek_voices_change_lead_volume;
-    change_functions[ 6] = &ek_voices_change_bass_octave;
-    change_functions[ 7] = &ek_voices_change_chords_octave;
-    change_functions[ 8] = &ek_voices_change_lead_octave;
-    change_functions[ 9] = &ek_voices_change_bass_table;
-    change_functions[10] = &ek_voices_change_chords_table;
-    change_functions[11] = &ek_voices_change_lead_table;
-    change_functions[12] = &ek_voices_change_lfo_table;
-    change_functions[13] = &ek_voices_change_lfo_frequency;
-    change_functions[14] = &ek_voices_change_bass_vibrato;
-    change_functions[15] = &ek_voices_change_chords_vibrato;
-    change_functions[16] = &ek_voices_change_lead_vibrato;
+    change_functions[ 1] = &ek_voices_change_lfo_table;
+    change_functions[ 2] = &ek_voices_change_lfo_frequency;
+    change_functions[ 3] = &ek_reverb_change_feedback;
+    change_functions[ 4] = &ek_reverb_change_damping;
+    change_functions[ 5] = &ek_voices_change_volume;
+    change_functions[ 6] = &ek_voices_change_octave;
+    change_functions[ 7] = &ek_voices_change_table;
+    change_functions[ 8] = &ek_voices_change_vibrato;
     
     ek_bluetooth_start(bluetooth_callback);
 

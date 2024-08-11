@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun EKSlider(title: String, id:Int, initialValue: Int) {
+    private fun EKSlider(title: String, id:Int, channel:Int, maxValue:Int, initialValue: Int) {
         var value by remember { mutableIntStateOf(initialValue) }
         Text(
             text = title,
@@ -126,37 +126,24 @@ class MainActivity : ComponentActivity() {
             value = value.toFloat(),
             onValueChange = { newValue ->
                 value = newValue.toInt()
-                bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),value.toByte()))
+                if (channel>=0) {
+                    // Channel specific
+                    bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),channel.toByte(),value.toByte()))
+                }
+                else {
+                    // General message
+                    bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),value.toByte()))
+                }
             },
-            valueRange = 0f..255f,
-            steps = 256,
+            valueRange = 0f..maxValue.toFloat(),
+            steps = maxValue+1,
             modifier = Modifier.height(24.dp)
         )
 
     }
 
     @Composable
-    private fun EKOctavePicker(title: String, id:Int, initialValue: Int) {
-        var value by remember { mutableIntStateOf(initialValue) }
-        Text(
-            text = title,
-            fontStyle = FontStyle.Italic
-        )
-        Slider(
-            value = value.toFloat(),
-            onValueChange = { newValue ->
-                value = newValue.toInt()
-                bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),(value+2).toByte()))
-            },
-            valueRange = -2f..2f,
-            steps = 5,
-            modifier = Modifier.height(24.dp)
-        )
-
-    }
-
-    @Composable
-    private fun EKTablePicker(title: String, id:Int) {
+    private fun EKTablePicker(title: String, id:Int, channel:Int) {
         var value by remember { mutableIntStateOf(0) }
         Text(
             text = title+" : "+wavetables[value],
@@ -166,7 +153,14 @@ class MainActivity : ComponentActivity() {
             value = value.toFloat(),
             onValueChange = { newValue ->
                 value = newValue.toInt()
-                bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),value.toByte()))
+                if (channel>=0) {
+                    // Channel specific
+                    bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),channel.toByte(),value.toByte()))
+                }
+                else {
+                    // General message
+                    bluetoothSocket?.outputStream?.write(byteArrayOf(id.toByte(),value.toByte()))
+                }
             },
             valueRange = 0f..(wavetables.size-1).toFloat(),
             steps = wavetables.size,
@@ -233,27 +227,27 @@ class MainActivity : ComponentActivity() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = " Reverberation",fontWeight = FontWeight.Bold)
-            EKSlider(title = " Feedback", id = 1, initialValue = 224)
-            EKSlider(title = " Damping", id = 2, initialValue = 192)
+            EKSlider(title = " Feedback", id = 3, channel = -1, maxValue = 255, initialValue = 224)
+            EKSlider(title = " Damping", id = 4, channel = -1, maxValue = 255, initialValue = 192)
             Text(text = "LFO",fontWeight = FontWeight.Bold)
-            EKTablePicker(title = " Table", id = 12)
-            EKSlider(title = " Frequence", id = 13, initialValue = 50)
+            EKTablePicker(title = " Table", id = 1, channel = -1)
+            EKSlider(title = " Frequence", id = 2, channel = -1, maxValue = 255, initialValue = 50)
             Text(text = " Volumes",fontWeight = FontWeight.Bold)
-            EKSlider(title = " Bass", id = 3, initialValue = 200)
-            EKSlider(title = " Chords", id = 4, initialValue = 200)
-            EKSlider(title = " Lead", id = 5, initialValue = 200)
+            EKSlider(title = " Bass", id = 5, channel = 0, maxValue = 255, initialValue = 200)
+            EKSlider(title = " Chords", id = 5, channel = 1, maxValue = 255, initialValue = 200)
+            EKSlider(title = " Lead", id = 5, channel = 2, maxValue = 255, initialValue = 200)
             Text(text = " Octaves",fontWeight = FontWeight.Bold)
-            EKOctavePicker(title = " Bass", id = 6, initialValue = 0)
-            EKOctavePicker(title = " Chords", id = 7, initialValue = 0)
-            EKOctavePicker(title = " Lead", id = 8, initialValue = 0)
+            EKSlider(title = " Bass", id = 6, channel = 0, maxValue = 4, initialValue = 2)
+            EKSlider(title = " Chords", id = 6, channel = 1, maxValue = 4, initialValue = 2)
+            EKSlider(title = " Lead", id = 6, channel = 2, maxValue = 4, initialValue = 2)
             Text(text = " Wavetables",fontWeight = FontWeight.Bold)
-            EKTablePicker(title = " Bass", id = 9)
-            EKTablePicker(title = " Chords", id = 10)
-            EKTablePicker(title = " Lead", id = 11)
+            EKTablePicker(title = " Bass", id = 7, channel = 0)
+            EKTablePicker(title = " Chords", id = 7, channel = 1)
+            EKTablePicker(title = " Lead", id = 7, channel = 2)
             Text(text = " Vibrato",fontWeight = FontWeight.Bold)
-            EKSlider(title = " Bass", id = 14, initialValue = 0)
-            EKSlider(title = " Chords", id = 15, initialValue = 0)
-            EKSlider(title = " Lead", id = 16, initialValue = 50)
+            EKSlider(title = " Bass", id = 8, channel = 0, maxValue = 255, initialValue = 0)
+            EKSlider(title = " Chords", id = 8, channel = 1, maxValue = 255, initialValue = 0)
+            EKSlider(title = " Lead", id = 8, channel = 2, maxValue = 255, initialValue = 50)
             Spacer(modifier = Modifier.height(64.dp))
         }
     }
