@@ -10,6 +10,7 @@ void ek_voices_change_custom_table(uint16_t length, uint8_t *data);
 void ek_voices_change_table(uint16_t length, uint8_t *data);
 void ek_voices_change_octave(uint16_t length, uint8_t *data);
 void ek_voices_change_vibrato(uint16_t length, uint8_t *data);
+void ek_voices_change_tremolo(uint16_t length, uint8_t *data);
 void ek_voices_change_dry_volume(uint16_t length, uint8_t *data);
 void ek_voices_change_wet_volume(uint16_t length, uint8_t *data);
 

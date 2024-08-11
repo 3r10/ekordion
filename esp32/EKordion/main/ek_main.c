@@ -87,8 +87,9 @@ void app_main(void)
     change_functions[ 6] = &ek_voices_change_table;
     change_functions[ 7] = &ek_voices_change_octave;
     change_functions[ 8] = &ek_voices_change_vibrato;
-    change_functions[ 9] = &ek_voices_change_dry_volume;
-    change_functions[10] = &ek_voices_change_wet_volume;
+    change_functions[ 9] = &ek_voices_change_tremolo;
+    change_functions[10] = &ek_voices_change_dry_volume;
+    change_functions[11] = &ek_voices_change_wet_volume;
     
     ek_bluetooth_start(bluetooth_callback);
 
