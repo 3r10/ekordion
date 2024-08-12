@@ -8,6 +8,8 @@ void ek_voices_change_lfo_frequency(uint16_t length, uint8_t *data);
 void ek_voices_change_lfo_table(uint16_t length, uint8_t *data);
 void ek_voices_change_custom_table(uint16_t length, uint8_t *data);
 void ek_voices_change_table(uint16_t length, uint8_t *data);
+void ek_voices_change_resolution(uint16_t length, uint8_t *data);
+void ek_voices_change_downsampling(uint16_t length, uint8_t *data);
 void ek_voices_change_octave(uint16_t length, uint8_t *data);
 void ek_voices_change_vibrato(uint16_t length, uint8_t *data);
 void ek_voices_change_tremolo(uint16_t length, uint8_t *data);

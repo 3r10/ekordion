@@ -41,6 +41,24 @@ import java.util.UUID
 
 // import com.example.test2.ui.theme.Test2Theme
 
+const val CHANGE_LFO_TABLE = 1;
+const val CHANGE_LFO_FREQUENCY = 2;
+const val CHANGE_REVERB_FEEDBACK = 3;
+const val CHANGE_REVERB_DAMPING = 4;
+const val CHANGE_REVERB_VOLUME = 5;
+const val CHANGE_WAVETABLE = 6;
+const val CHANGE_RESOLUTION = 7;
+const val CHANGE_DOWNSAMPLING = 8;
+const val CHANGE_OCTAVE = 9;
+const val CHANGE_VIBRATO = 10;
+const val CHANGE_TREMOLO = 11;
+const val CHANGE_DRY_VOLUME = 12;
+const val CHANGE_WET_VOLUME = 13;
+
+const val CHANNEL_BASS = 0;
+const val CHANNEL_CHORDS = 1;
+const val CHANNEL_LEAD = 2;
+
 @RequiresApi(Build.VERSION_CODES.S)
 class MainActivity : ComponentActivity() {
     private var bluetoothAdapter : BluetoothAdapter? = null
@@ -227,36 +245,44 @@ class MainActivity : ComponentActivity() {
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = "LFO",fontWeight = FontWeight.Bold)
-            EKTablePicker(title = " Table", id = 1, channel = -1)
-            EKSlider(title = " Frequence", id = 2, channel = -1, maxValue = 255, initialValue = 50)
+            EKTablePicker(title = " Table", id = CHANGE_LFO_TABLE, channel = -1)
+            EKSlider(title = " Frequency", id = CHANGE_LFO_FREQUENCY, channel = -1, maxValue = 255, initialValue = 50)
             Text(text = " Reverberation",fontWeight = FontWeight.Bold)
-            EKSlider(title = " Feedback", id = 3, channel = -1, maxValue = 255, initialValue = 224)
-            EKSlider(title = " Damping", id = 4, channel = -1, maxValue = 255, initialValue = 192)
-            EKSlider(title = " Volume", id = 5, channel = -1, maxValue = 255, initialValue = 200)
-            Text(text = " Wavetables",fontWeight = FontWeight.Bold)
-            EKTablePicker(title = " Bass", id = 6, channel = 0)
-            EKTablePicker(title = " Chords", id = 6, channel = 1)
-            EKTablePicker(title = " Lead", id = 6, channel = 2)
-            Text(text = " Octaves",fontWeight = FontWeight.Bold)
-            EKSlider(title = " Bass", id = 7, channel = 0, maxValue = 4, initialValue = 2)
-            EKSlider(title = " Chords", id = 7, channel = 1, maxValue = 4, initialValue = 2)
-            EKSlider(title = " Lead", id = 7, channel = 2, maxValue = 4, initialValue = 2)
+            EKSlider(title = " Feedback", id = CHANGE_REVERB_FEEDBACK, channel = -1, maxValue = 255, initialValue = 224)
+            EKSlider(title = " Damping", id = CHANGE_REVERB_DAMPING, channel = -1, maxValue = 255, initialValue = 192)
+            EKSlider(title = " Volume", id = CHANGE_REVERB_VOLUME, channel = -1, maxValue = 255, initialValue = 200)
+            Text(text = " Wavetable",fontWeight = FontWeight.Bold)
+            EKTablePicker(title = " Bass", id = CHANGE_WAVETABLE, channel = CHANNEL_BASS)
+            EKTablePicker(title = " Chords", id = CHANGE_WAVETABLE, channel = CHANNEL_CHORDS)
+            EKTablePicker(title = " Lead", id = CHANGE_WAVETABLE, channel = CHANNEL_LEAD)
+            Text(text = " Resolution",fontWeight = FontWeight.Bold)
+            EKSlider(title = " Bass", id = CHANGE_RESOLUTION, channel = CHANNEL_BASS, maxValue = 15, initialValue = 0)
+            EKSlider(title = " Chords", id = CHANGE_RESOLUTION, channel = CHANNEL_CHORDS, maxValue = 15, initialValue = 0)
+            EKSlider(title = " Lead", id = CHANGE_RESOLUTION, channel = CHANNEL_LEAD, maxValue = 15, initialValue = 0)
+            Text(text = " Downsampling",fontWeight = FontWeight.Bold)
+            EKSlider(title = " Bass", id = CHANGE_DOWNSAMPLING, channel = CHANNEL_BASS, maxValue = 31, initialValue = 0)
+            EKSlider(title = " Chords", id = CHANGE_DOWNSAMPLING, channel = CHANNEL_CHORDS, maxValue = 31, initialValue = 0)
+            EKSlider(title = " Lead", id = CHANGE_DOWNSAMPLING, channel = CHANNEL_LEAD, maxValue = 31, initialValue = 0)
+            Text(text = " Octave",fontWeight = FontWeight.Bold)
+            EKSlider(title = " Bass", id = CHANGE_OCTAVE, channel = CHANNEL_BASS, maxValue = 4, initialValue = 2)
+            EKSlider(title = " Chords", id = CHANGE_OCTAVE, channel = CHANNEL_CHORDS, maxValue = 4, initialValue = 2)
+            EKSlider(title = " Lead", id = CHANGE_OCTAVE, channel = CHANNEL_LEAD, maxValue = 4, initialValue = 2)
             Text(text = " Vibrato",fontWeight = FontWeight.Bold)
-            EKSlider(title = " Bass", id = 8, channel = 0, maxValue = 255, initialValue = 0)
-            EKSlider(title = " Chords", id = 8, channel = 1, maxValue = 255, initialValue = 0)
-            EKSlider(title = " Lead", id = 8, channel = 2, maxValue = 255, initialValue = 50)
-            Text(text = " Tremolos",fontWeight = FontWeight.Bold)
-            EKSlider(title = " Bass", id = 9, channel = 0, maxValue = 255, initialValue = 0)
-            EKSlider(title = " Chords", id = 9, channel = 1, maxValue = 255, initialValue = 0)
-            EKSlider(title = " Lead", id = 9, channel = 2, maxValue = 255, initialValue = 0)
-            Text(text = " Dry volumes",fontWeight = FontWeight.Bold)
-            EKSlider(title = " Bass", id = 10, channel = 0, maxValue = 255, initialValue = 200)
-            EKSlider(title = " Chords", id = 10, channel = 1, maxValue = 255, initialValue = 200)
-            EKSlider(title = " Lead", id = 10, channel = 2, maxValue = 255, initialValue = 200)
-            Text(text = " Wet volumes",fontWeight = FontWeight.Bold)
-            EKSlider(title = " Bass", id = 11, channel = 0, maxValue = 255, initialValue = 100)
-            EKSlider(title = " Chords", id = 11, channel = 1, maxValue = 255, initialValue = 100)
-            EKSlider(title = " Lead", id = 11, channel = 2, maxValue = 255, initialValue = 100)
+            EKSlider(title = " Bass", id = CHANGE_VIBRATO, channel = CHANNEL_BASS, maxValue = 255, initialValue = 0)
+            EKSlider(title = " Chords", id = CHANGE_VIBRATO, channel = CHANNEL_CHORDS, maxValue = 255, initialValue = 0)
+            EKSlider(title = " Lead", id = CHANGE_VIBRATO, channel = CHANNEL_LEAD, maxValue = 255, initialValue = 50)
+            Text(text = " Tremolo",fontWeight = FontWeight.Bold)
+            EKSlider(title = " Bass", id = CHANGE_TREMOLO, channel = CHANNEL_BASS, maxValue = 255, initialValue = 0)
+            EKSlider(title = " Chords", id = CHANGE_TREMOLO, channel = CHANNEL_CHORDS, maxValue = 255, initialValue = 0)
+            EKSlider(title = " Lead", id = CHANGE_TREMOLO, channel = CHANNEL_LEAD, maxValue = 255, initialValue = 0)
+            Text(text = " Dry volume",fontWeight = FontWeight.Bold)
+            EKSlider(title = " Bass", id = CHANGE_DRY_VOLUME, channel = CHANNEL_BASS, maxValue = 255, initialValue = 200)
+            EKSlider(title = " Chords", id = CHANGE_DRY_VOLUME, channel = CHANNEL_CHORDS, maxValue = 255, initialValue = 200)
+            EKSlider(title = " Lead", id = CHANGE_DRY_VOLUME, channel = CHANNEL_LEAD, maxValue = 255, initialValue = 200)
+            Text(text = " Wet volume",fontWeight = FontWeight.Bold)
+            EKSlider(title = " Bass", id = CHANGE_WET_VOLUME, channel = CHANNEL_BASS, maxValue = 255, initialValue = 100)
+            EKSlider(title = " Chords", id = CHANGE_WET_VOLUME, channel = CHANNEL_CHORDS, maxValue = 255, initialValue = 100)
+            EKSlider(title = " Lead", id = CHANGE_WET_VOLUME, channel = CHANNEL_LEAD, maxValue = 255, initialValue = 100)
             Spacer(modifier = Modifier.height(64.dp))
         }
     }
