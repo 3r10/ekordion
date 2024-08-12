@@ -19,7 +19,6 @@ static int32_t int32_wet_buffer[DMA_BUF_LEN];
 static int32_t output_l_int32_buffer[DMA_BUF_LEN];
 static int32_t output_r_int32_buffer[DMA_BUF_LEN];
 
-#define N_CHANGE_FUNCTIONS 128
 static void (*change_functions[N_CHANGE_FUNCTIONS])(uint16_t length, uint8_t *data) = {0};
 
 static void write_buffer()
@@ -78,20 +77,22 @@ void app_main(void)
     for (int i=0; i<N_CHANGE_FUNCTIONS; i++) {
         change_functions[i] = NULL;
     }
-    change_functions[ 0] = &ek_voices_change_custom_table;
-    change_functions[ 1] = &ek_voices_change_lfo_table;
-    change_functions[ 2] = &ek_voices_change_lfo_frequency;
-    change_functions[ 3] = &ek_reverb_change_feedback;
-    change_functions[ 4] = &ek_reverb_change_damping;
-    change_functions[ 5] = &ek_reverb_change_volume;
-    change_functions[ 6] = &ek_voices_change_table;
-    change_functions[ 7] = &ek_voices_change_resolution;
-    change_functions[ 8] = &ek_voices_change_downsampling;
-    change_functions[ 9] = &ek_voices_change_octave;
-    change_functions[10] = &ek_voices_change_vibrato;
-    change_functions[11] = &ek_voices_change_tremolo;
-    change_functions[12] = &ek_voices_change_dry_volume;
-    change_functions[13] = &ek_voices_change_wet_volume;
+    change_functions[CHANGE_CUSTOM_TABLE] = &ek_voices_change_custom_table;
+    change_functions[CHANGE_LFO_TABLE] = &ek_voices_change_lfo_table;
+    change_functions[CHANGE_LFO_FREQUENCY] = &ek_voices_change_lfo_frequency;
+    change_functions[CHANGE_REVERB_FEEDBACK] = &ek_reverb_change_feedback;
+    change_functions[CHANGE_REVERB_DAMPING] = &ek_reverb_change_damping;
+    change_functions[CHANGE_REVERB_VOLUME] = &ek_reverb_change_volume;
+    change_functions[CHANGE_TABLE] = &ek_voices_change_table;
+    change_functions[CHANGE_RESOLUTION] = &ek_voices_change_resolution;
+    change_functions[CHANGE_DOWNSAMPLING] = &ek_voices_change_downsampling;
+    change_functions[CHANGE_OCTAVE] = &ek_voices_change_octave;
+    change_functions[CHANGE_ARPEGGIO_DURATION] = &ek_voices_change_arpeggio_duration;
+    change_functions[CHANGE_ARPEGGIATOR] = &ek_voices_change_arpeggiator;
+    change_functions[CHANGE_VIBRATO] = &ek_voices_change_vibrato;
+    change_functions[CHANGE_TREMOLO] = &ek_voices_change_tremolo;
+    change_functions[CHANGE_DRY_VOLUME] = &ek_voices_change_dry_volume;
+    change_functions[CHANGE_WET_VOLUME] = &ek_voices_change_wet_volume;
     
     ek_bluetooth_start(bluetooth_callback);
 

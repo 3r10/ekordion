@@ -11,6 +11,8 @@ void ek_voices_change_table(uint16_t length, uint8_t *data);
 void ek_voices_change_resolution(uint16_t length, uint8_t *data);
 void ek_voices_change_downsampling(uint16_t length, uint8_t *data);
 void ek_voices_change_octave(uint16_t length, uint8_t *data);
+void ek_voices_change_arpeggio_duration(uint16_t length, uint8_t *data);
+void ek_voices_change_arpeggiator(uint16_t length, uint8_t *data);
 void ek_voices_change_vibrato(uint16_t length, uint8_t *data);
 void ek_voices_change_tremolo(uint16_t length, uint8_t *data);
 void ek_voices_change_dry_volume(uint16_t length, uint8_t *data);

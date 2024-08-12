@@ -19,6 +19,23 @@ static const char* TAG = "EKordion";
 /* BLUETOOTH */
 #define EK_BLUETOOTH_SERVER_NAME "EKordion server"
 #define EK_BLUETOOTH_DEVICE_NAME "EKordion device"
+#define CHANGE_CUSTOM_TABLE      0
+#define CHANGE_LFO_TABLE         1
+#define CHANGE_LFO_FREQUENCY     2
+#define CHANGE_REVERB_FEEDBACK   3
+#define CHANGE_REVERB_DAMPING    4
+#define CHANGE_REVERB_VOLUME     5
+#define CHANGE_TABLE             6
+#define CHANGE_RESOLUTION        7
+#define CHANGE_DOWNSAMPLING      8
+#define CHANGE_OCTAVE            9
+#define CHANGE_ARPEGGIO_DURATION 10
+#define CHANGE_ARPEGGIATOR       11
+#define CHANGE_VIBRATO           12
+#define CHANGE_TREMOLO           13
+#define CHANGE_DRY_VOLUME        14
+#define CHANGE_WET_VOLUME        15
+#define N_CHANGE_FUNCTIONS       16
 
 /* GENERAL I2S PARAMETERS */
 #define SAMPLE_RATE     44100
@@ -39,6 +56,7 @@ static const char* TAG = "EKordion";
 /* SYNTH */
 #define N_CHANNELS 3
 #define N_VOICES 12
+#define ARPEGGIATOR_MAX_LENTGH 16
 #define BASS_CHANNEL   0
 #define CHORDS_CHANNEL 1
 #define LEAD_CHANNEL   2

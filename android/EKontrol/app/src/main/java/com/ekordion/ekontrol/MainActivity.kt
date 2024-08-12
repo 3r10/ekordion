@@ -50,10 +50,12 @@ const val CHANGE_WAVETABLE = 6;
 const val CHANGE_RESOLUTION = 7;
 const val CHANGE_DOWNSAMPLING = 8;
 const val CHANGE_OCTAVE = 9;
-const val CHANGE_VIBRATO = 10;
-const val CHANGE_TREMOLO = 11;
-const val CHANGE_DRY_VOLUME = 12;
-const val CHANGE_WET_VOLUME = 13;
+const val CHANGE_ARPEGGIO_DURATION = 10;
+const val CHANGE_ARPEGGIATOR = 11;
+const val CHANGE_VIBRATO = 12;
+const val CHANGE_TREMOLO = 13;
+const val CHANGE_DRY_VOLUME = 14;
+const val CHANGE_WET_VOLUME = 15;
 
 const val CHANNEL_BASS = 0;
 const val CHANNEL_CHORDS = 1;
@@ -146,7 +148,7 @@ class MainActivity : ComponentActivity() {
     private fun EKSlider(title: String, id:Int, channel:Int, maxValue:Int, initialValue: Int) {
         var value by remember { mutableIntStateOf(initialValue) }
         Text(
-            text = title,
+            text = " $title",
             fontStyle = FontStyle.Italic
         )
         Slider(
@@ -199,14 +201,16 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun EKChannelInterface(title: String, channel: Int) {
         EKTitle(title)
-        EKTablePicker(title = " Wavetable", id = CHANGE_WAVETABLE, channel = channel)
-        EKSlider(title = " Resolution", id = CHANGE_RESOLUTION, channel = channel, maxValue = 15, initialValue = 0)
-        EKSlider(title = " Downsampling", id = CHANGE_DOWNSAMPLING, channel = channel, maxValue = 31, initialValue = 0)
-        EKSlider(title = " Octave", id = CHANGE_OCTAVE, channel = channel, maxValue = 4, initialValue = 2)
-        EKSlider(title = " Vibrato", id = CHANGE_VIBRATO, channel = channel, maxValue = 255, initialValue = 0)
-        EKSlider(title = " Tremolo", id = CHANGE_TREMOLO, channel = channel, maxValue = 255, initialValue = 0)
-        EKSlider(title = " Dry volume", id = CHANGE_DRY_VOLUME, channel = channel, maxValue = 255, initialValue = 200)
-        EKSlider(title = " Wet volume", id = CHANGE_WET_VOLUME, channel = channel, maxValue = 255, initialValue = 100)
+        EKTablePicker(title = "Wavetable", id = CHANGE_WAVETABLE, channel = channel)
+        EKSlider(title = "Resolution", id = CHANGE_RESOLUTION, channel = channel, maxValue = 15, initialValue = 0)
+        EKSlider(title = "Downsampling", id = CHANGE_DOWNSAMPLING, channel = channel, maxValue = 31, initialValue = 0)
+        EKSlider(title = "Octave", id = CHANGE_OCTAVE, channel = channel, maxValue = 4, initialValue = 2)
+        EKSlider(title = "Arpeggio duration", id = CHANGE_ARPEGGIO_DURATION, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Arpeggiator", id = CHANGE_ARPEGGIATOR, channel = channel, maxValue = 7, initialValue = 0)
+        EKSlider(title = "Vibrato", id = CHANGE_VIBRATO, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Tremolo", id = CHANGE_TREMOLO, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Dry volume", id = CHANGE_DRY_VOLUME, channel = channel, maxValue = 255, initialValue = 200)
+        EKSlider(title = "Wet volume", id = CHANGE_WET_VOLUME, channel = channel, maxValue = 255, initialValue = 100)
     }
 
     @Composable
@@ -257,15 +261,15 @@ class MainActivity : ComponentActivity() {
             }
             Spacer(modifier = Modifier.height(16.dp))
             EKTitle("LFO")
-            EKTablePicker(title = " Table", id = CHANGE_LFO_TABLE, channel = -1)
-            EKSlider(title = " Frequency", id = CHANGE_LFO_FREQUENCY, channel = -1, maxValue = 255, initialValue = 50)
+            EKTablePicker(title = "Table", id = CHANGE_LFO_TABLE, channel = -1)
+            EKSlider(title = "Frequency", id = CHANGE_LFO_FREQUENCY, channel = -1, maxValue = 255, initialValue = 50)
             EKTitle("Reverberation")
-            EKSlider(title = " Feedback", id = CHANGE_REVERB_FEEDBACK, channel = -1, maxValue = 255, initialValue = 224)
-            EKSlider(title = " Damping", id = CHANGE_REVERB_DAMPING, channel = -1, maxValue = 255, initialValue = 192)
-            EKSlider(title = " Volume", id = CHANGE_REVERB_VOLUME, channel = -1, maxValue = 255, initialValue = 200)
-            EKChannelInterface(title = " Bass", channel = CHANNEL_BASS)
-            EKChannelInterface(title = " Chords", channel = CHANNEL_CHORDS)
-            EKChannelInterface(title = " Lead", channel = CHANNEL_LEAD)
+            EKSlider(title = "Feedback", id = CHANGE_REVERB_FEEDBACK, channel = -1, maxValue = 255, initialValue = 224)
+            EKSlider(title = "Damping", id = CHANGE_REVERB_DAMPING, channel = -1, maxValue = 255, initialValue = 192)
+            EKSlider(title = "Volume", id = CHANGE_REVERB_VOLUME, channel = -1, maxValue = 255, initialValue = 200)
+            EKChannelInterface(title = "Bass", channel = CHANNEL_BASS)
+            EKChannelInterface(title = "Chords", channel = CHANNEL_CHORDS)
+            EKChannelInterface(title = "Lead", channel = CHANNEL_LEAD)
             Spacer(modifier = Modifier.height(64.dp))
         }
     }
