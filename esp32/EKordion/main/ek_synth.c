@@ -1,14 +1,9 @@
 #include <string.h>
-#include "ek_synth.h"
 #include "ek_tables.h"
+#include "ek_lfo.h"
+#include "ek_synth.h"
 
 #define N_RAMP_STEPS 32 // ~ 1 ms ramp
-
-typedef struct lfo_s {
-    uint32_t phase_increment;
-    uint32_t phase;
-    int16_t *table;
-} lfo_t;
 
 typedef struct arpeggiator_s {
     uint8_t length;
@@ -69,9 +64,7 @@ static void compute_phase_increment(voice_t *voice) {
 
 extern void ek_synth_init() {
     // LFO
-    lfo.phase_increment = 0;
-    lfo.phase = 0;
-    lfo.table = tables[1]; // Sine wave
+    lfo = ek_lfo_create();
     // CHANNELS
     channels[BASS_CHANNEL].base_midi_note = BASS_BASE_MIDI_NOTE;
     channels[CHORDS_CHANNEL].base_midi_note = CHORDS_BASE_MIDI_NOTE;
@@ -118,13 +111,13 @@ extern void ek_synth_change_custom_table(uint16_t length, uint8_t *data) {
 
 extern void ek_synth_change_lfo_frequency(uint16_t length, uint8_t *data) {
     if (length!=1) return;
-    lfo.phase_increment = 3820*data[0];
+    ek_lfo_change_phase_increment(lfo,3820*(uint32_t)data[0]);
 }
 
 extern void ek_synth_change_lfo_table(uint16_t length, uint8_t *data) {
     if (length!=1) return;
     if (data[0]>=N_TABLES) return;
-    lfo.table = tables[data[0]];
+    ek_lfo_change_table(lfo,tables[data[0]]);
 }
 
 extern void ek_synth_change_table(uint16_t length, uint8_t *data) {
@@ -271,21 +264,7 @@ extern void button_off(int i_channel,int i_button) {
     voices[i_voice].i_button = -1;
 }
 
-static void compute_lfo(int16_t output_int16_buffer[DMA_BUF_LEN]) {
-    uint32_t phase = 0, phase_increment = 0;
-    const int16_t *table;
-
-    phase_increment = lfo.phase_increment;
-    phase = lfo.phase;
-    table = lfo.table;
-    for (int i=0; i<DMA_BUF_LEN; i++) {
-        output_int16_buffer[i] = table[phase>>TABLE_PHASE_SHIFT];
-        phase += phase_increment;
-    }
-    lfo.phase = phase;
-}
-
-static void compute_voices(int16_t lfo_buffer[DMA_BUF_LEN],int32_t output_int32_buffers[N_CHANNELS][DMA_BUF_LEN]) {
+static void compute_voices(int32_t *lfo_int32_buffer,int32_t output_int32_buffers[N_CHANNELS][DMA_BUF_LEN]) {
     uint8_t i_channel;
     channel_t *channel;
     arpeggiator_t *arpeggiator;
@@ -332,7 +311,7 @@ static void compute_voices(int16_t lfo_buffer[DMA_BUF_LEN],int32_t output_int32_
                     arpeggio_tick = 0;
                 }
                 output_int32_buffers[i_channel][i] += (table[phase>>TABLE_PHASE_SHIFT]&resolution_mask)*ramp_step;
-                phase += ((phase_increment+(((lfo_buffer[i]*(int32_t)(phase_increment>>20))*vibrato)>>8))*factor)>>shift;
+                phase += ((phase_increment+(((lfo_int32_buffer[i]*(int32_t)(phase_increment>>20))*vibrato)>>8))*factor)>>shift;
             }
             voices[i_voice].phase = phase;
             voices[i_voice].ramp_step = ramp_step;
@@ -342,11 +321,11 @@ static void compute_voices(int16_t lfo_buffer[DMA_BUF_LEN],int32_t output_int32_
     }
 }
 
-static void compute_tremolo(int16_t lfo_buffer[DMA_BUF_LEN],int32_t int32_buffers[N_CHANNELS][DMA_BUF_LEN]) {
+static void compute_tremolo(int32_t *lfo_int32_buffer,int32_t int32_buffers[N_CHANNELS][DMA_BUF_LEN]) {
     for (uint8_t i_channel=0; i_channel<N_CHANNELS; i_channel++) {
         uint8_t tremolo = channels[i_channel].tremolo;
         for (uint8_t i=0; i<DMA_BUF_LEN; i++) {
-            int32_t factor = ((1<<24)+((int32_t)lfo_buffer[i]-(1<<15))*tremolo)>>16;
+            int32_t factor = ((1<<24)+(lfo_int32_buffer[i]-(1<<15))*tremolo)>>16;
             int32_buffers[i_channel][i] = (int32_buffers[i_channel][i]*factor)>>8;
         }
     }
@@ -372,15 +351,15 @@ extern void ek_channels_compute(
     int32_t output_dry_int32_buffer[DMA_BUF_LEN],
     int32_t output_wet_int32_buffer[DMA_BUF_LEN]
 ) {
-    int16_t lfo_int16_buffer[DMA_BUF_LEN];
+    int32_t *lfo_int32_buffer;
     int32_t output_int32_buffers[N_CHANNELS][DMA_BUF_LEN];
 
     // LFO
-    compute_lfo(lfo_int16_buffer);
+    lfo_int32_buffer = ek_lfo_compute(lfo);
     // CHANNELS BEFORE EFFECTS
-    compute_voices(lfo_int16_buffer,output_int32_buffers);
+    compute_voices(lfo_int32_buffer,output_int32_buffers);
     // EFFECTS
-    compute_tremolo(lfo_int16_buffer,output_int32_buffers);
+    compute_tremolo(lfo_int32_buffer,output_int32_buffers);
     compute_downsampling(output_int32_buffers);
     // FINAL MIX
     for (uint8_t i=0; i<DMA_BUF_LEN; i++) {
