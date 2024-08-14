@@ -1,4 +1,5 @@
 #include "ek_config.h"
+#include "ek_arpeggiator.h"
 
 #ifndef EK_VOICE_H
 #define EK_VOICE_H
@@ -18,9 +19,7 @@ int32_t *ek_voice_compute(
     int32_t *lfo_int32_buffer,
     const int16_t *table,
     uint16_t arpeggio_duration,
-    uint8_t arpeggiator_length,
-    uint8_t arpeggiator_factors[ARPEGGIATOR_MAX_LENTGH],
-    uint8_t arpeggiator_shifts[ARPEGGIATOR_MAX_LENTGH],
+    arpeggiator_t arpeggiator,
     int16_t resolution_mask,
     uint8_t vibrato
 );

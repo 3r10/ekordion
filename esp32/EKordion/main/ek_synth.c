@@ -1,15 +1,10 @@
 #include <string.h>
 #include "ek_tables.h"
 #include "ek_lfo.h"
+#include "ek_arpeggiator.h"
 #include "ek_voice.h"
 #include "ek_synth.h"
 
-
-typedef struct arpeggiator_s {
-    uint8_t length;
-    uint8_t factors[ARPEGGIATOR_MAX_LENTGH];
-    uint8_t shifts[ARPEGGIATOR_MAX_LENTGH];
-} arpeggiator_t;
 
 typedef struct channel_s {
     uint8_t base_midi_note;
@@ -18,7 +13,7 @@ typedef struct channel_s {
     int16_t resolution_mask;
     uint8_t downsampling;
     uint16_t arpeggio_duration; // in samples
-    arpeggiator_t *arpeggiator;
+    arpeggiator_t arpeggiator;
     uint8_t vibrato;
     uint8_t tremolo;
     uint8_t dry_volume;
@@ -29,20 +24,6 @@ typedef struct channel_s {
 
 
 static lfo_t lfo;
-
-#define N_ARPEGGIATORS 8
-const arpeggiator_t arpeggiator00 = { .length = 1, .factors = {1}, .shifts = {0}};
-const arpeggiator_t arpeggiator01 = { .length = 2, .factors = {1, 2}, .shifts = {0, 0}};
-const arpeggiator_t arpeggiator02 = { .length = 2, .factors = {1, 3}, .shifts = {0, 1}};
-const arpeggiator_t arpeggiator03 = { .length = 3, .factors = {1, 2, 4}, .shifts = {0, 0, 0}};
-const arpeggiator_t arpeggiator04 = { .length = 3, .factors = {1, 3, 2}, .shifts = {0, 1, 0}};
-const arpeggiator_t arpeggiator05 = { .length = 4, .factors = {1, 3, 2, 3}, .shifts = {0, 1, 0, 1}};
-const arpeggiator_t arpeggiator06 = { .length = 4, .factors = {1, 3, 2, 3}, .shifts = {0, 1, 0, 0}};
-const arpeggiator_t arpeggiator07 = { .length = 4, .factors = {1, 5, 3, 2}, .shifts = {0, 2, 1, 0}};
-
-const arpeggiator_t arpeggiators[N_ARPEGGIATORS] = {
-    arpeggiator00, arpeggiator01, arpeggiator02, arpeggiator03, arpeggiator04, arpeggiator05, arpeggiator06, arpeggiator07
-};
 static channel_t channels[N_CHANNELS];
 
 extern void ek_synth_init() {
@@ -60,7 +41,7 @@ extern void ek_synth_init() {
         channel->table = tables[0];
         channel->resolution_mask = -1;
         channel->downsampling = 0;
-        channel->arpeggiator = &arpeggiators[0];
+        channel->arpeggiator = ek_arpeggiator_get(0);
         channel->arpeggio_duration = SAMPLE_RATE;
         channel->vibrato = 0;
         channel->tremolo = 0;
@@ -158,7 +139,7 @@ extern void ek_synth_change_arpeggiator(uint16_t length, uint8_t *data) {
     i_channel = data[0];
     if (i_channel>=N_CHANNELS) return;
     if (data[1]>=N_ARPEGGIATORS) return;
-    channels[i_channel].arpeggiator = &(arpeggiators[data[1]]);
+    channels[i_channel].arpeggiator = ek_arpeggiator_get(data[1]);
 }
 
 extern void ek_synth_change_vibrato(uint16_t length, uint8_t *data) {
@@ -254,7 +235,7 @@ static void compute_voices(int32_t *lfo_int32_buffer,int32_t output_int32_buffer
                 channel->voices[i_voice],
                 lfo_int32_buffer,
                 channel->table,channel->arpeggio_duration,
-                channel->arpeggiator->length,channel->arpeggiator->factors,channel->arpeggiator->shifts,
+                channel->arpeggiator,
                 channel->resolution_mask,channel->vibrato
             );
             if (voice_output!=NULL) {

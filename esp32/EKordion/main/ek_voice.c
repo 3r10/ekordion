@@ -55,15 +55,13 @@ extern int32_t *ek_voice_compute(
     int32_t *lfo_int32_buffer,
     const int16_t *table,
     uint16_t arpeggio_duration,
-    uint8_t arpeggiator_length,
-    uint8_t arpeggiator_factors[ARPEGGIATOR_MAX_LENTGH],
-    uint8_t arpeggiator_shifts[ARPEGGIATOR_MAX_LENTGH],
+    arpeggiator_t arpeggiator,
     int16_t resolution_mask,
     uint8_t vibrato
 ) {
 
     uint32_t phase,phase_increment;
-    uint8_t arpeggio_step, factor, shift;
+    uint8_t arpeggio_step, arpeggio_factor, arpeggio_shift;
     uint16_t arpeggio_tick;
     int32_t *output; 
 
@@ -80,8 +78,8 @@ extern int32_t *ek_voice_compute(
     arpeggio_tick = voice->arpeggio_tick;
     output = voice->output;
     // Arp
-    factor = arpeggiator_factors[arpeggio_step];
-    shift = arpeggiator_shifts[arpeggio_step];
+    arpeggio_factor = ek_arpeggiator_get_factor(arpeggiator,arpeggio_step);
+    arpeggio_shift = ek_arpeggiator_get_shift(arpeggiator,arpeggio_step);
 
     for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
         if (on_off && ramp_step<N_RAMP_STEPS) {
@@ -92,13 +90,13 @@ extern int32_t *ek_voice_compute(
         }
         arpeggio_tick++;
         if (arpeggio_tick>=arpeggio_duration) {
-            arpeggio_step = (arpeggio_step+1)%arpeggiator_length;
-            factor = arpeggiator_factors[arpeggio_step];
-            shift = arpeggiator_shifts[arpeggio_step];
+            arpeggio_step = (arpeggio_step+1)%ek_arpeggiator_get_length(arpeggiator);
+            arpeggio_factor = ek_arpeggiator_get_factor(arpeggiator,arpeggio_step);
+            arpeggio_shift = ek_arpeggiator_get_shift(arpeggiator,arpeggio_step);
             arpeggio_tick = 0;
         }
         output[i] = (table[phase>>TABLE_PHASE_SHIFT]&resolution_mask)*ramp_step;
-        phase += ((phase_increment+(((lfo_int32_buffer[i]*(int32_t)(phase_increment>>20))*vibrato)>>8))*factor)>>shift;
+        phase += ((phase_increment+(((lfo_int32_buffer[i]*(int32_t)(phase_increment>>20))*vibrato)>>8))*arpeggio_factor)>>arpeggio_shift;
     }
     // Record params
     voice->phase = phase;
