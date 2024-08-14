@@ -1,7 +1,7 @@
 #include "ek_config.h"
 #include "ek_bluetooth.h"
 #include "ek_keyboards.h"
-#include "ek_voices.h"
+#include "ek_synth.h"
 #include "ek_reverb.h"
 #include "ek_i2s.h"
 
@@ -72,27 +72,27 @@ void app_main(void)
 {
     ek_i2s_init();
     ek_keyboards_init();   
-    ek_voices_init();
+    ek_synth_init();
 
     for (int i=0; i<N_CHANGE_FUNCTIONS; i++) {
         change_functions[i] = NULL;
     }
-    change_functions[CHANGE_CUSTOM_TABLE] = &ek_voices_change_custom_table;
-    change_functions[CHANGE_LFO_TABLE] = &ek_voices_change_lfo_table;
-    change_functions[CHANGE_LFO_FREQUENCY] = &ek_voices_change_lfo_frequency;
+    change_functions[CHANGE_CUSTOM_TABLE] = &ek_synth_change_custom_table;
+    change_functions[CHANGE_LFO_TABLE] = &ek_synth_change_lfo_table;
+    change_functions[CHANGE_LFO_FREQUENCY] = &ek_synth_change_lfo_frequency;
     change_functions[CHANGE_REVERB_FEEDBACK] = &ek_reverb_change_feedback;
     change_functions[CHANGE_REVERB_DAMPING] = &ek_reverb_change_damping;
     change_functions[CHANGE_REVERB_VOLUME] = &ek_reverb_change_volume;
-    change_functions[CHANGE_TABLE] = &ek_voices_change_table;
-    change_functions[CHANGE_RESOLUTION] = &ek_voices_change_resolution;
-    change_functions[CHANGE_DOWNSAMPLING] = &ek_voices_change_downsampling;
-    change_functions[CHANGE_OCTAVE] = &ek_voices_change_octave;
-    change_functions[CHANGE_ARPEGGIO_DURATION] = &ek_voices_change_arpeggio_duration;
-    change_functions[CHANGE_ARPEGGIATOR] = &ek_voices_change_arpeggiator;
-    change_functions[CHANGE_VIBRATO] = &ek_voices_change_vibrato;
-    change_functions[CHANGE_TREMOLO] = &ek_voices_change_tremolo;
-    change_functions[CHANGE_DRY_VOLUME] = &ek_voices_change_dry_volume;
-    change_functions[CHANGE_WET_VOLUME] = &ek_voices_change_wet_volume;
+    change_functions[CHANGE_TABLE] = &ek_synth_change_table;
+    change_functions[CHANGE_RESOLUTION] = &ek_synth_change_resolution;
+    change_functions[CHANGE_DOWNSAMPLING] = &ek_synth_change_downsampling;
+    change_functions[CHANGE_OCTAVE] = &ek_synth_change_octave;
+    change_functions[CHANGE_ARPEGGIO_DURATION] = &ek_synth_change_arpeggio_duration;
+    change_functions[CHANGE_ARPEGGIATOR] = &ek_synth_change_arpeggiator;
+    change_functions[CHANGE_VIBRATO] = &ek_synth_change_vibrato;
+    change_functions[CHANGE_TREMOLO] = &ek_synth_change_tremolo;
+    change_functions[CHANGE_DRY_VOLUME] = &ek_synth_change_dry_volume;
+    change_functions[CHANGE_WET_VOLUME] = &ek_synth_change_wet_volume;
     
     ek_bluetooth_start(bluetooth_callback);
 
