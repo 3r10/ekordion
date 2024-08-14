@@ -1,5 +1,5 @@
 #include <string.h>
-#include "ek_voices.h"
+#include "ek_synth.h"
 #include "ek_tables.h"
 
 #define N_RAMP_STEPS 32 // ~ 1 ms ramp
@@ -67,7 +67,7 @@ static void compute_phase_increment(voice_t *voice) {
     voice->phase_increment = 21500000*pow(2.0f,(midi_note-69)/12.0f);
 }
 
-extern void ek_voices_init() {
+extern void ek_synth_init() {
     // LFO
     lfo.phase_increment = 0;
     lfo.phase = 0;
@@ -110,24 +110,24 @@ extern void ek_voices_init() {
     }
 }
 
-extern void ek_voices_change_custom_table(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_custom_table(uint16_t length, uint8_t *data) {
     if (length!=2*CHANGE_TABLE_OFFSET+1) return;
     uint16_t offset = ((uint16_t)data[0])*CHANGE_TABLE_OFFSET;
     memcpy(tables[0]+offset,data+1,CHANGE_TABLE_OFFSET*sizeof(uint16_t));
 }
 
-extern void ek_voices_change_lfo_frequency(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_lfo_frequency(uint16_t length, uint8_t *data) {
     if (length!=1) return;
     lfo.phase_increment = 3820*data[0];
 }
 
-extern void ek_voices_change_lfo_table(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_lfo_table(uint16_t length, uint8_t *data) {
     if (length!=1) return;
     if (data[0]>=N_TABLES) return;
     lfo.table = tables[data[0]];
 }
 
-extern void ek_voices_change_table(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_table(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
 
     if (length!=2) return;
@@ -137,7 +137,7 @@ extern void ek_voices_change_table(uint16_t length, uint8_t *data) {
     channels[i_channel].table = tables[data[1]];
 }
 
-extern void ek_voices_change_resolution(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_resolution(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
     
     if (length!=2) return;
@@ -147,7 +147,7 @@ extern void ek_voices_change_resolution(uint16_t length, uint8_t *data) {
     channels[i_channel].resolution_mask = ~((1<<data[1])-1);
 }
 
-extern void ek_voices_change_downsampling(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_downsampling(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
     
     if (length!=2) return;
@@ -157,7 +157,7 @@ extern void ek_voices_change_downsampling(uint16_t length, uint8_t *data) {
     channels[i_channel].downsampling = data[1];
 }
 
-extern void ek_voices_change_octave(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_octave(uint16_t length, uint8_t *data) {
     uint8_t i_channel,i_start,i_end;
     
     if (length!=2) return;
@@ -172,7 +172,7 @@ extern void ek_voices_change_octave(uint16_t length, uint8_t *data) {
     }
 }
 
-extern void ek_voices_change_arpeggio_duration(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_arpeggio_duration(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
     
     if (length!=2) return;
@@ -181,7 +181,7 @@ extern void ek_voices_change_arpeggio_duration(uint16_t length, uint8_t *data) {
     channels[i_channel].arpeggio_duration = (1+(uint16_t)data[1])<<4;
 }
 
-extern void ek_voices_change_arpeggiator(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_arpeggiator(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
     
     if (length!=2) return;
@@ -191,7 +191,7 @@ extern void ek_voices_change_arpeggiator(uint16_t length, uint8_t *data) {
     channels[i_channel].arpeggiator = &(arpeggiators[data[1]]);
 }
 
-extern void ek_voices_change_vibrato(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_vibrato(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
 
     if (length!=2) return;
@@ -200,7 +200,7 @@ extern void ek_voices_change_vibrato(uint16_t length, uint8_t *data) {
     channels[i_channel].vibrato = data[1];
 }
 
-extern void ek_voices_change_tremolo(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_tremolo(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
 
     if (length!=2) return;
@@ -209,7 +209,7 @@ extern void ek_voices_change_tremolo(uint16_t length, uint8_t *data) {
     channels[i_channel].tremolo = data[1];
 }
 
-extern void ek_voices_change_dry_volume(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_dry_volume(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
 
     if (length!=2) return;
@@ -218,7 +218,7 @@ extern void ek_voices_change_dry_volume(uint16_t length, uint8_t *data) {
     channels[i_channel].dry_volume = data[1];
 }
 
-extern void ek_voices_change_wet_volume(uint16_t length, uint8_t *data) {
+extern void ek_synth_change_wet_volume(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
 
     if (length!=2) return;
