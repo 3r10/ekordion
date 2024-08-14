@@ -53,16 +53,13 @@ extern void ek_voice_change_phase_increment(
 extern int32_t *ek_voice_compute(
     voice_t voice,
     int32_t *lfo_int32_buffer,
-    const int16_t *table,
-    uint16_t arpeggio_duration,
-    arpeggiator_t arpeggiator,
-    int16_t resolution_mask,
-    uint8_t vibrato
+    channel_t channel
 ) {
-
+    arpeggiator_t arpeggiator;
     uint32_t phase,phase_increment;
-    uint8_t arpeggio_step, arpeggio_factor, arpeggio_shift;
-    uint16_t arpeggio_tick;
+    uint8_t arpeggio_step, arpeggio_factor, arpeggio_shift, vibrato;
+    uint16_t arpeggio_tick, arpeggio_duration;
+    int16_t resolution_mask, *table;
     int32_t *output; 
 
     uint8_t on_off = voice->i_button!=-1;
@@ -77,6 +74,12 @@ extern int32_t *ek_voice_compute(
     arpeggio_step = voice->arpeggio_step;
     arpeggio_tick = voice->arpeggio_tick;
     output = voice->output;
+    // 
+    table = ek_channel_get_table(channel);
+    resolution_mask = ek_channel_get_resolution_mask(channel);
+    arpeggio_duration = ek_channel_get_arpeggio_duration(channel);
+    arpeggiator = ek_channel_get_arpeggiator(channel);
+    vibrato = ek_channel_get_vibrato(channel);
     // Arp
     arpeggio_factor = ek_arpeggiator_get_factor(arpeggiator,arpeggio_step);
     arpeggio_shift = ek_arpeggiator_get_shift(arpeggiator,arpeggio_step);

@@ -1,5 +1,5 @@
 #include "ek_config.h"
-#include "ek_arpeggiator.h"
+#include "ek_channel.h"
 
 #ifndef EK_VOICE_H
 #define EK_VOICE_H
@@ -17,10 +17,6 @@ void ek_voice_change_phase_increment(
 int32_t *ek_voice_compute(
     voice_t voice,
     int32_t *lfo_int32_buffer,
-    const int16_t *table,
-    uint16_t arpeggio_duration,
-    arpeggiator_t arpeggiator,
-    int16_t resolution_mask,
-    uint8_t vibrato
+    channel_t channel
 );
 #endif

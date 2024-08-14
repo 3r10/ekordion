@@ -45,8 +45,8 @@ void ek_keyboards_get_data() {
         if (on_off!=right_switches_on_off[i_switch]) {
             right_switches_on_off[i_switch] = on_off;
             // i_button = i_switch (strict correspondance here)
-            if (on_off) button_on(LEAD_CHANNEL,i_switch);
-            else button_off(LEAD_CHANNEL,i_switch);
+            if (on_off) ek_synth_button_on(LEAD_CHANNEL,i_switch);
+            else ek_synth_button_off(LEAD_CHANNEL,i_switch);
         }
         gpio_set_level(GPIO_CLK,1);
         gpio_set_level(GPIO_CLK,0);
@@ -61,8 +61,8 @@ void ek_keyboards_get_data() {
             int i_channel = left_switch_to_channel[i_switch];
             int i_button = left_switch_to_button[i_switch];
             left_switches_on_off[i_switch] = on_off;
-            if (on_off) button_on(i_channel,i_button);
-            else button_off(i_channel,i_button);
+            if (on_off) ek_synth_button_on(i_channel,i_button);
+            else ek_synth_button_off(i_channel,i_button);
         }
         gpio_set_level(GPIO_CLK,1);
         gpio_set_level(GPIO_CLK,0);

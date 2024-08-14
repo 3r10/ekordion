@@ -18,9 +18,9 @@ void ek_synth_change_tremolo(uint16_t length, uint8_t *data);
 void ek_synth_change_dry_volume(uint16_t length, uint8_t *data);
 void ek_synth_change_wet_volume(uint16_t length, uint8_t *data);
 
-void button_on(int i_channel,int i_button);
-void button_off(int i_channel,int i_button);
-void ek_channels_compute(    
+void ek_synth_button_on(uint8_t i_channel,int16_t i_button);
+void ek_synth_button_off(uint8_t i_channel,int16_t i_button);
+void ek_synth_compute(    
     int32_t output_dry_int32_buffer[DMA_BUF_LEN],
     int32_t output_wet_int32_buffer[DMA_BUF_LEN]
 );

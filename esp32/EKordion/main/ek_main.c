@@ -29,7 +29,7 @@ static void write_buffer()
     time_before_s = time_stamp.tv_sec + time_stamp.tv_usec / 1000000.0;
 #endif
 
-    ek_channels_compute(int32_dry_buffer,int32_wet_buffer);
+    ek_synth_compute(int32_dry_buffer,int32_wet_buffer);
     ek_reverb_compute(int32_dry_buffer,int32_wet_buffer,output_l_int32_buffer,output_r_int32_buffer);
 
 #if (MEASURE_CPU_USAGE == true)
