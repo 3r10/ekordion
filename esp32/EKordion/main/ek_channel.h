@@ -7,16 +7,11 @@
 typedef struct channel_s *channel_t;
 channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note);
 // GETTERS
-int16_t *ek_channel_get_table(channel_t channel);
-int16_t ek_channel_get_resolution_mask(channel_t channel);
-uint16_t ek_channel_get_arpeggio_duration(channel_t channel);
-arpeggiator_t ek_channel_get_arpeggiator(channel_t channel);
-uint8_t ek_channel_get_vibrato(channel_t channel);
 uint8_t ek_channel_get_dry_volume(channel_t channel);
 uint8_t ek_channel_get_wet_volume(channel_t channel);
 // SETTERS
 void ek_channel_change_table(channel_t channel, int16_t *table);
-void ek_channel_change_resolution(channel_t channel,  uint8_t resolution);
+void ek_channel_change_resolution_mask(channel_t channel, int16_t resolution_mask);
 void ek_channel_change_downsampling(channel_t channel, uint8_t downsampling);
 void ek_channel_change_octave(channel_t channel, int8_t octave);
 void ek_channel_change_arpeggio_duration(channel_t channel, uint16_t arpeggio_duration);

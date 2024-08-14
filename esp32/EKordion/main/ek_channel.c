@@ -4,15 +4,8 @@
 #include "ek_voice.h"
 
 struct channel_s {
-    uint8_t base_midi_note;
-    int8_t octave;
-    int16_t *table;
-    int16_t resolution_mask;
-    uint8_t downsampling;
-    uint16_t arpeggio_duration; // in samples
-    arpeggiator_t arpeggiator;
-    uint8_t vibrato;
     uint8_t tremolo;
+    uint8_t downsampling;
     uint8_t dry_volume;
     uint8_t wet_volume;
     uint8_t n_voices;
@@ -29,20 +22,13 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
     }
     // CHANNELS
     channel->n_voices = n_voices;
-    channel->base_midi_note = base_midi_note;
-    channel->table = tables[0];
-    channel->resolution_mask = -1;
     channel->downsampling = 0;
-    channel->arpeggiator = ek_arpeggiator_get(0);
-    channel->arpeggio_duration = SAMPLE_RATE;
-    channel->vibrato = 0;
     channel->tremolo = 0;
     channel->dry_volume = 200;
     channel->wet_volume = 100;
-    channel->octave = 0;
     for (uint8_t i_voice=0; i_voice<N_VOICES; i_voice++) {
         if (i_voice<channel->n_voices) {
-            channel->voices[i_voice] = ek_voice_create();
+            channel->voices[i_voice] = ek_voice_create(base_midi_note);
         }
         else {
             channel->voices[i_voice] = NULL;
@@ -54,26 +40,6 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
     return channel;
 }
 
-int16_t *ek_channel_get_table(channel_t channel) {
-    return channel->table;
-}
-
-int16_t ek_channel_get_resolution_mask(channel_t channel) {
-    return channel->resolution_mask;
-}
-
-uint16_t ek_channel_get_arpeggio_duration(channel_t channel) {
-    return channel->arpeggio_duration;
-}
-
-extern arpeggiator_t ek_channel_get_arpeggiator(channel_t channel) {
-    return channel->arpeggiator;
-}
-
-uint8_t ek_channel_get_vibrato(channel_t channel) {
-    return channel->vibrato;
-}
-
 extern uint8_t ek_channel_get_dry_volume(channel_t channel) {
     return channel->dry_volume;
 }
@@ -83,39 +49,43 @@ extern uint8_t ek_channel_get_wet_volume(channel_t channel) {
 }
 
 extern void ek_channel_change_table(channel_t channel, int16_t *table) {
-    channel->table = table;
+    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
+        ek_voice_change_table(channel->voices[i_voice],table);
+    }
 }
 
-extern void ek_channel_change_resolution(channel_t channel,  uint8_t resolution) {
-    channel->resolution_mask = ~((1<<resolution)-1);
+extern void ek_channel_change_resolution_mask(channel_t channel, int16_t resolution_mask) {
+    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
+        ek_voice_change_resolution_mask(channel->voices[i_voice],resolution_mask);
+    }
 }
 
 extern void ek_channel_change_downsampling(channel_t channel, uint8_t downsampling) {
     channel->downsampling = downsampling;
 }
 
-extern void ek_channel_change_octave(channel_t channel, int8_t octave) {
-    channel->octave = octave;
+extern void ek_channel_change_octave(channel_t channel, int8_t octave) { 
     for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        ek_voice_change_phase_increment(
-            channel->voices[i_voice],
-            channel->base_midi_note,
-            channel->octave
-        );
+        ek_voice_change_octave(channel->voices[i_voice],octave);
     }
-
 }
 
 extern void ek_channel_change_arpeggio_duration(channel_t channel, uint16_t arpeggio_duration) {
-    channel->arpeggio_duration = arpeggio_duration;
+    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
+        ek_voice_change_arpeggio_duration(channel->voices[i_voice],arpeggio_duration);
+    }
 }
 
 extern void ek_channel_change_arpeggiator(channel_t channel, arpeggiator_t arpeggiator) {
-    channel->arpeggiator = arpeggiator;
+    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
+        ek_voice_change_arpeggiator(channel->voices[i_voice],arpeggiator);
+    }
 }
 
 extern void ek_channel_change_vibrato(channel_t channel, uint8_t vibrato) {
-    channel->vibrato = vibrato;
+    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
+        ek_voice_change_vibrato(channel->voices[i_voice],vibrato);
+    }
 }
 
 extern void ek_channel_change_tremolo(channel_t channel, uint8_t tremolo) {
@@ -157,8 +127,7 @@ extern void ek_channel_button_on(channel_t channel, int16_t i_button) {
         return;
     }
     ESP_LOGI(TAG, "Channel : Button %d ON",i_button);
-    ek_voice_set_i_button(channel->voices[i_voice],i_button);
-    ek_voice_change_phase_increment(channel->voices[i_voice],channel->base_midi_note,channel->octave);
+    ek_voice_change_i_button(channel->voices[i_voice],i_button);
 }
 
 extern void ek_channel_button_off(channel_t channel, int16_t i_button) {
@@ -167,7 +136,7 @@ extern void ek_channel_button_off(channel_t channel, int16_t i_button) {
         return;
     }
     ESP_LOGI(TAG, "Channel : Button %d OFF",i_button);
-    ek_voice_set_i_button(channel->voices[i_voice],-1);
+    ek_voice_change_i_button(channel->voices[i_voice],-1);
 }
 
 extern int32_t *ek_channel_compute(channel_t channel,int32_t *lfo_int32_buffer) {
@@ -181,11 +150,7 @@ extern int32_t *ek_channel_compute(channel_t channel,int32_t *lfo_int32_buffer) 
         output[i] = 0;
     }
     for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        int32_t *voice_output = ek_voice_compute(
-            channel->voices[i_voice],
-            lfo_int32_buffer,
-            channel
-        );
+        int32_t *voice_output = ek_voice_compute(channel->voices[i_voice],lfo_int32_buffer);
         if (voice_output!=NULL) {
             for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
                 output[i] += voice_output[i];

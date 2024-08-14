@@ -45,7 +45,7 @@ static void change_resolution(uint16_t length, uint8_t *data) {
     i_channel = data[0];
     if (i_channel>=N_CHANNELS) return;
     if (data[1]>15) return;
-    ek_channel_change_resolution(channels[i_channel],data[1]);
+    ek_channel_change_resolution_mask(channels[i_channel],~((1<<data[1])-1));
 }
 
 static void change_downsampling(uint16_t length, uint8_t *data) {
