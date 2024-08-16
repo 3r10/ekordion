@@ -43,3 +43,13 @@ def generate_sum(tables,amplitudes):
         for i in range(len(table)):
             table[i] += amplitudes[i_table]*tables[i_table][i]
     return table
+
+def generate_shepard(generate=generate_sine):
+    table = [0.0]*TABLE_N_SAMPLES
+    multiplier = 1
+    while multiplier<TABLE_N_SAMPLES:
+        harmonic = generate(multiplier)
+        for i in range(len(table)):
+            table[i] += harmonic[i]
+        multiplier *= 2
+    return table

@@ -70,7 +70,8 @@ class MainActivity : ComponentActivity() {
     private val wavetables = arrayOf(
         "Custom","Sine","Sine o4","Sine o8","Square","PWM 20",
         "Triangle 50","Triangle 80","Triangle 95","Triangle 99","Sawtooth","Sawtooth o4","Sawtooth o8",
-        "Additive1","Additive1 o4","Additive1 o8","Additive2","Additive2 o4","Additive2 o8","Flute"
+        "Additive1","Additive1 o4","Additive1 o8","Additive2","Additive2 o4","Additive2 o8","Flute",
+        "Shepard Sine","Shepard Triangle","Shepard Sawtooth","Shepard Square"
     )
     private val registerForResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -204,7 +205,7 @@ class MainActivity : ComponentActivity() {
         EKTablePicker(title = "Wavetable", id = CHANGE_WAVETABLE, channel = channel)
         EKSlider(title = "Resolution", id = CHANGE_RESOLUTION, channel = channel, maxValue = 15, initialValue = 0)
         EKSlider(title = "Downsampling", id = CHANGE_DOWNSAMPLING, channel = channel, maxValue = 31, initialValue = 0)
-        EKSlider(title = "Octave", id = CHANGE_OCTAVE, channel = channel, maxValue = 4, initialValue = 2)
+        EKSlider(title = "Octave", id = CHANGE_OCTAVE, channel = channel, maxValue = 6, initialValue = 3)
         EKSlider(title = "Arpeggio duration", id = CHANGE_ARPEGGIO_DURATION, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Arpeggiator", id = CHANGE_ARPEGGIATOR, channel = channel, maxValue = 7, initialValue = 0)
         EKSlider(title = "Vibrato", id = CHANGE_VIBRATO, channel = channel, maxValue = 255, initialValue = 0)

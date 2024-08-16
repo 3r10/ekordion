@@ -64,8 +64,8 @@ static void change_octave(uint16_t length, uint8_t *data) {
     if (length!=2) return;
     i_channel = data[0];
     if (i_channel>=N_CHANNELS) return;
-    if (data[1]>4) return;
-    ek_channel_change_octave(channels[i_channel],((int8_t)data[1])-2);
+    if (data[1]>6) return;
+    ek_channel_change_octave(channels[i_channel],((int8_t)data[1])-3);
 }
 
 static void change_arpeggio_duration(uint16_t length, uint8_t *data) {
