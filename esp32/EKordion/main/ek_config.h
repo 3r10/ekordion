@@ -32,10 +32,14 @@ static const char* TAG = "EKordion";
 #define CHANGE_ARPEGGIO_DURATION 10
 #define CHANGE_ARPEGGIATOR       11
 #define CHANGE_VIBRATO           12
-#define CHANGE_TREMOLO           13
-#define CHANGE_DRY_VOLUME        14
-#define CHANGE_WET_VOLUME        15
-#define N_CHANGE_FUNCTIONS       16
+#define CHANGE_ENVELOPE_A        13
+#define CHANGE_ENVELOPE_D        14
+#define CHANGE_ENVELOPE_S        15
+#define CHANGE_ENVELOPE_R        16
+#define CHANGE_TREMOLO           17
+#define CHANGE_DRY_VOLUME        18
+#define CHANGE_WET_VOLUME        19
+#define N_CHANGE_FUNCTIONS       20
 
 /* GENERAL I2S PARAMETERS */
 #define SAMPLE_RATE     44100

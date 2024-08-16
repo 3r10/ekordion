@@ -53,9 +53,13 @@ const val CHANGE_OCTAVE = 9;
 const val CHANGE_ARPEGGIO_DURATION = 10;
 const val CHANGE_ARPEGGIATOR = 11;
 const val CHANGE_VIBRATO = 12;
-const val CHANGE_TREMOLO = 13;
-const val CHANGE_DRY_VOLUME = 14;
-const val CHANGE_WET_VOLUME = 15;
+const val CHANGE_ENVELOPE_A = 13;
+const val CHANGE_ENVELOPE_D = 14;
+const val CHANGE_ENVELOPE_S = 15;
+const val CHANGE_ENVELOPE_R = 16;
+const val CHANGE_TREMOLO = 17;
+const val CHANGE_DRY_VOLUME = 18;
+const val CHANGE_WET_VOLUME = 19;
 
 const val CHANNEL_BASS = 0;
 const val CHANNEL_CHORDS = 1;
@@ -209,6 +213,10 @@ class MainActivity : ComponentActivity() {
         EKSlider(title = "Arpeggio duration", id = CHANGE_ARPEGGIO_DURATION, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Arpeggiator", id = CHANGE_ARPEGGIATOR, channel = channel, maxValue = 7, initialValue = 0)
         EKSlider(title = "Vibrato", id = CHANGE_VIBRATO, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Envelope A", id = CHANGE_ENVELOPE_A, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Envelope D", id = CHANGE_ENVELOPE_D, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Envelope S", id = CHANGE_ENVELOPE_S, channel = channel, maxValue = 255, initialValue = 255)
+        EKSlider(title = "Envelope R", id = CHANGE_ENVELOPE_R, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Tremolo", id = CHANGE_TREMOLO, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Dry volume", id = CHANGE_DRY_VOLUME, channel = channel, maxValue = 255, initialValue = 200)
         EKSlider(title = "Wet volume", id = CHANGE_WET_VOLUME, channel = channel, maxValue = 255, initialValue = 100)

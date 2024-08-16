@@ -103,6 +103,42 @@ static void change_tremolo(uint16_t length, uint8_t *data) {
     ek_channel_change_tremolo(channels[i_channel],data[1]);
 }
 
+static void change_envelope_a(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_envelope_a(channels[i_channel],data[1]);
+}
+
+static void change_envelope_d(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_envelope_d(channels[i_channel],data[1]);
+}
+
+static void change_envelope_s(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_envelope_s(channels[i_channel],data[1]);
+}
+
+static void change_envelope_r(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_envelope_r(channels[i_channel],data[1]);
+}
+
 static void change_dry_volume(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
 
@@ -145,6 +181,10 @@ extern void ek_synth_init() {
     change_functions[CHANGE_ARPEGGIATOR] = &change_arpeggiator;
     change_functions[CHANGE_VIBRATO] = &change_vibrato;
     change_functions[CHANGE_TREMOLO] = &change_tremolo;
+    change_functions[CHANGE_ENVELOPE_A] = &change_envelope_a;
+    change_functions[CHANGE_ENVELOPE_D] = &change_envelope_d;
+    change_functions[CHANGE_ENVELOPE_S] = &change_envelope_s;
+    change_functions[CHANGE_ENVELOPE_R] = &change_envelope_r;
     change_functions[CHANGE_DRY_VOLUME] = &change_dry_volume;
     change_functions[CHANGE_WET_VOLUME] = &change_wet_volume;
 }

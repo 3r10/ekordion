@@ -5,7 +5,14 @@
 #include "ek_tables.h"
 #include "ek_adsr.h"
 
-
+struct adsr_parameters_s {
+    int32_t delta_a;
+    int32_t value_d;
+    int32_t delta_d;
+    int32_t value_s; 
+    int32_t value_r;
+    int32_t delta_r;
+};
 
 struct channel_s {
     uint8_t n_voices;
@@ -16,6 +23,7 @@ struct channel_s {
     uint16_t arpeggio_duration;
     int16_t *table;
     int16_t resolution_mask;
+    struct adsr_parameters_s envelope_parameters;
     uint8_t tremolo;
     uint8_t downsampling;
     uint8_t dry_volume;
@@ -48,6 +56,12 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
     channel->table = tables[0];
     channel->resolution_mask = -1;
     channel->downsampling = 0;
+    channel->envelope_parameters.delta_a = ADSR_MAXIMUM_VALUE/DMA_BUF_LEN;
+    channel->envelope_parameters.value_d = DMA_BUF_LEN;
+    channel->envelope_parameters.delta_d = 0;
+    channel->envelope_parameters.value_s = ADSR_MAXIMUM_VALUE;
+    channel->envelope_parameters.value_r = DMA_BUF_LEN;
+    channel->envelope_parameters.delta_r = ADSR_MAXIMUM_VALUE/DMA_BUF_LEN;
     channel->tremolo = 0;
     channel->dry_volume = 200;
     channel->wet_volume = 100;
@@ -97,6 +111,30 @@ extern void ek_channel_change_arpeggiator_pattern(channel_t channel, uint8_t i_p
 
 extern void ek_channel_change_vibrato(channel_t channel, uint8_t vibrato) {
     channel->vibrato = vibrato;
+}
+
+static int32_t slider_to_value(uint8_t slider) {
+    return (((int32_t)slider)+1)<<6;
+}
+
+extern void ek_channel_change_envelope_a(channel_t channel, uint8_t a) {
+    channel->envelope_parameters.delta_a = ADSR_MAXIMUM_VALUE/slider_to_value(a);
+}
+
+extern void ek_channel_change_envelope_d(channel_t channel, uint8_t d) {
+    channel->envelope_parameters.value_d = slider_to_value(d);
+    channel->envelope_parameters.delta_d = (ADSR_MAXIMUM_VALUE-channel->envelope_parameters.value_s)/channel->envelope_parameters.value_d;
+}
+
+extern void ek_channel_change_envelope_s(channel_t channel, uint8_t s) {
+    channel->envelope_parameters.value_s = ((int32_t)s)<<ADSR_SHIFT_VALUE;
+    channel->envelope_parameters.delta_d = (ADSR_MAXIMUM_VALUE-channel->envelope_parameters.value_s)/channel->envelope_parameters.value_d;
+    channel->envelope_parameters.delta_r = channel->envelope_parameters.value_s/channel->envelope_parameters.value_r;
+}
+
+extern void ek_channel_change_envelope_r(channel_t channel, uint8_t r) {
+    channel->envelope_parameters.value_r = slider_to_value(r);
+    channel->envelope_parameters.delta_r = channel->envelope_parameters.value_s/channel->envelope_parameters.value_r;
 }
 
 extern void ek_channel_change_tremolo(channel_t channel, uint8_t tremolo) {
@@ -205,9 +243,14 @@ extern void ek_channel_compute(
                 );
             }
             compute_voice(channel,i_voice,phase_increment,voice_output);
-            ek_adsr_compute(channel->envelopes[i_voice],on_off,envelope_output);
+            ek_adsr_compute(channel->envelopes[i_voice],on_off,
+            channel->envelope_parameters.delta_a,
+            channel->envelope_parameters.delta_d,
+            channel->envelope_parameters.value_s,
+            channel->envelope_parameters.delta_r,
+            envelope_output);
             for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
-                output[i] += voice_output[i]*envelope_output[i];
+                output[i] += (voice_output[i]*(envelope_output[i]>>16))>>9;
             }
         }
     }
