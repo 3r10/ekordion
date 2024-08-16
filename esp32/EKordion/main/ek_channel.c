@@ -1,23 +1,28 @@
 #include <string.h>
 #include "ek_channel.h"
 #include "ek_phasor.h"
+#include "ek_arpeggiator.h"
 #include "ek_tables.h"
-#include "ek_voice.h"
 #include "ek_adsr.h"
 
 
 
 struct channel_s {
+    uint8_t n_voices;
     uint8_t base_midi_note;
     int8_t octave;
-    ek_phasor_t phasors[N_VOICES];
     uint8_t vibrato;
+    uint8_t i_arpeggiator_pattern;
+    uint16_t arpeggio_duration;
+    int16_t *table;
+    int16_t resolution_mask;
     uint8_t tremolo;
     uint8_t downsampling;
     uint8_t dry_volume;
     uint8_t wet_volume;
-    uint8_t n_voices;
-    voice_t voices[N_VOICES];
+    ek_phasor_t phasors[N_VOICES];
+    ek_arpeggiator_t arpeggiators[N_VOICES];
+    int32_t phases[N_VOICES];
     ek_adsr_t envelopes[N_VOICES];
     int32_t last_sample;
 };
@@ -38,20 +43,25 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
     channel->octave = 0;
     channel->n_voices = n_voices;
     channel->vibrato = 0;
+    channel->i_arpeggiator_pattern = 0;
+    channel->arpeggio_duration = SAMPLE_RATE;
+    channel->table = tables[0];
+    channel->resolution_mask = -1;
     channel->downsampling = 0;
     channel->tremolo = 0;
     channel->dry_volume = 200;
     channel->wet_volume = 100;
     channel->last_sample = 0;
     for (uint8_t i_voice=0; i_voice<N_VOICES; i_voice++) {
+        channel->phases[i_voice] = 0;
         if (i_voice<channel->n_voices) {
             channel->phasors[i_voice] = ek_phasor_create();
-            channel->voices[i_voice] = ek_voice_create();
+            channel->arpeggiators[i_voice] = ek_arpeggiator_create();
             channel->envelopes[i_voice] = ek_adsr_create();
         }
         else {
             channel->phasors[i_voice] = NULL;
-            channel->voices[i_voice] = NULL;
+            channel->arpeggiators[i_voice] = NULL;
             channel->envelopes[i_voice] = NULL;
         }
     }
@@ -59,15 +69,11 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
 }
 
 extern void ek_channel_change_table(channel_t channel, int16_t *table) {
-    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        ek_voice_change_table(channel->voices[i_voice],table);
-    }
+    channel->table = table;
 }
 
 extern void ek_channel_change_resolution_mask(channel_t channel, int16_t resolution_mask) {
-    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        ek_voice_change_resolution_mask(channel->voices[i_voice],resolution_mask);
-    }
+    channel->resolution_mask = resolution_mask;
 }
 
 extern void ek_channel_change_downsampling(channel_t channel, uint8_t downsampling) {
@@ -82,15 +88,11 @@ extern void ek_channel_change_octave(channel_t channel, int8_t octave) {
 }
 
 extern void ek_channel_change_arpeggio_duration(channel_t channel, uint16_t arpeggio_duration) {
-    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        ek_voice_change_arpeggio_duration(channel->voices[i_voice],arpeggio_duration);
-    }
+    channel->arpeggio_duration = arpeggio_duration;
 }
 
-extern void ek_channel_change_arpeggiator(channel_t channel, arpeggiator_t arpeggiator) {
-    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        ek_voice_change_arpeggiator(channel->voices[i_voice],arpeggiator);
-    }
+extern void ek_channel_change_arpeggiator_pattern(channel_t channel, uint8_t i_pattern) {
+    channel->i_arpeggiator_pattern = i_pattern;
 }
 
 extern void ek_channel_change_vibrato(channel_t channel, uint8_t vibrato) {
@@ -157,6 +159,22 @@ static void compute_vibrato(channel_t channel, int32_t *lfo_int32_buffer, int32_
     }
 }
 
+static void compute_voice(channel_t channel,
+    int8_t i_voice,
+    int32_t *phase_increment_int32_buffer,
+    int32_t *output_int32_buffer
+) {
+    uint32_t phase = channel->phases[i_voice];
+    int16_t *table = channel->table;
+    int16_t resolution_mask = channel->resolution_mask;
+    
+    for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
+        output_int32_buffer[i] = (table[phase>>TABLE_PHASE_SHIFT]&resolution_mask);
+        phase += phase_increment_int32_buffer[i];
+    }
+    channel->phases[i_voice] = phase;
+}
+
 extern void ek_channel_compute(
     channel_t channel,
     int32_t *lfo_int32_buffer,
@@ -178,7 +196,15 @@ extern void ek_channel_compute(
             if (channel->vibrato) {
                 compute_vibrato(channel,lfo_int32_buffer,phase_increment);
             }
-            ek_voice_compute(channel->voices[i_voice],lfo_int32_buffer,phase_increment,voice_output);
+            if (channel->i_arpeggiator_pattern) {
+                ek_arpeggiator_compute(
+                    channel->arpeggiators[i_voice], 
+                    channel->i_arpeggiator_pattern, 
+                    channel->arpeggio_duration,
+                    phase_increment
+                );
+            }
+            compute_voice(channel,i_voice,phase_increment,voice_output);
             ek_adsr_compute(channel->envelopes[i_voice],on_off,envelope_output);
             for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
                 output[i] += voice_output[i]*envelope_output[i];

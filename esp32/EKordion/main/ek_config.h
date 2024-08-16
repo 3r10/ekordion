@@ -56,7 +56,6 @@ static const char* TAG = "EKordion";
 /* SYNTH */
 #define N_CHANNELS 3
 #define N_VOICES 12
-#define ARPEGGIATOR_MAX_LENTGH 16
 #define BASS_CHANNEL   0
 #define CHORDS_CHANNEL 1
 #define LEAD_CHANNEL   2

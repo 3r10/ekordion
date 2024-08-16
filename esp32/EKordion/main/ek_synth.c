@@ -2,7 +2,6 @@
 #include "ek_tables.h"
 #include "ek_lfo.h"
 #include "ek_arpeggiator.h"
-#include "ek_voice.h"
 #include "ek_channel.h"
 #include "ek_reverb.h"
 #include "ek_synth.h"
@@ -83,8 +82,7 @@ static void change_arpeggiator(uint16_t length, uint8_t *data) {
     if (length!=2) return;
     i_channel = data[0];
     if (i_channel>=N_CHANNELS) return;
-    if (data[1]>=N_ARPEGGIATORS) return;
-    ek_channel_change_arpeggiator(channels[i_channel],ek_arpeggiator_get(data[1]));
+    ek_channel_change_arpeggiator_pattern(channels[i_channel],data[1]);
 }
 
 static void change_vibrato(uint16_t length, uint8_t *data) {
