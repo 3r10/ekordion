@@ -11,6 +11,7 @@ struct channel_s {
     uint8_t base_midi_note;
     int8_t octave;
     ek_phasor_t phasors[N_VOICES];
+    uint8_t vibrato;
     uint8_t tremolo;
     uint8_t downsampling;
     uint8_t dry_volume;
@@ -36,6 +37,7 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
     channel->base_midi_note = base_midi_note;
     channel->octave = 0;
     channel->n_voices = n_voices;
+    channel->vibrato = 0;
     channel->downsampling = 0;
     channel->tremolo = 0;
     channel->dry_volume = 200;
@@ -92,9 +94,7 @@ extern void ek_channel_change_arpeggiator(channel_t channel, arpeggiator_t arpeg
 }
 
 extern void ek_channel_change_vibrato(channel_t channel, uint8_t vibrato) {
-    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        ek_voice_change_vibrato(channel->voices[i_voice],vibrato);
-    }
+    channel->vibrato = vibrato;
 }
 
 extern void ek_channel_change_tremolo(channel_t channel, uint8_t tremolo) {
@@ -149,6 +149,14 @@ extern void ek_channel_button_off(channel_t channel, int16_t i_button) {
     ek_phasor_change_note(channel->phasors[i_voice],-1);
 }
 
+static void compute_vibrato(channel_t channel, int32_t *lfo_int32_buffer, int32_t *input_output_int32_buffer) {
+    uint8_t vibrato = channel->vibrato;
+
+    for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
+        input_output_int32_buffer[i] += ((lfo_int32_buffer[i]*(input_output_int32_buffer[i]>>20))*vibrato)>>8;
+    }
+}
+
 extern void ek_channel_compute(
     channel_t channel,
     int32_t *lfo_int32_buffer,
@@ -167,6 +175,9 @@ extern void ek_channel_compute(
         uint8_t on_off = ek_phasor_get_note(channel->phasors[i_voice])!=-1;
         if (on_off || ek_adsr_is_active(channel->envelopes[i_voice])) {
             ek_phasor_compute(channel->phasors[i_voice],phase_increment);
+            if (channel->vibrato) {
+                compute_vibrato(channel,lfo_int32_buffer,phase_increment);
+            }
             ek_voice_compute(channel->voices[i_voice],lfo_int32_buffer,phase_increment,voice_output);
             ek_adsr_compute(channel->envelopes[i_voice],on_off,envelope_output);
             for (uint16_t i=0; i<DMA_BUF_LEN; i++) {

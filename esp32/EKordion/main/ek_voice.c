@@ -8,7 +8,6 @@ struct voice_s {
     uint16_t arpeggio_tick;
     uint8_t arpeggio_step;
     arpeggiator_t arpeggiator;
-    uint8_t vibrato;
     uint32_t phase;
 };
 
@@ -23,7 +22,6 @@ extern voice_t ek_voice_create() {
     voice->resolution_mask = -1;
     voice->arpeggiator = ek_arpeggiator_get(0);
     voice->arpeggio_duration = SAMPLE_RATE;
-    voice->vibrato = 0;
     voice->phase = 0;
     voice->arpeggio_tick = 0;
     voice->arpeggio_step = 0;
@@ -46,10 +44,6 @@ extern void ek_voice_change_arpeggiator(voice_t voice, arpeggiator_t arpeggiator
     voice->arpeggiator = arpeggiator;
 }
 
-extern void ek_voice_change_vibrato(voice_t voice, uint8_t vibrato) {
-    voice->vibrato = vibrato;
-}
-
 extern void ek_voice_compute(
     voice_t voice,
     int32_t *lfo_int32_buffer,
@@ -58,7 +52,7 @@ extern void ek_voice_compute(
 ) {
     arpeggiator_t arpeggiator;
     uint32_t phase,phase_increment;
-    uint8_t arpeggio_step, arpeggio_factor, arpeggio_shift, vibrato;
+    uint8_t arpeggio_step, arpeggio_factor, arpeggio_shift;
     uint16_t arpeggio_tick, arpeggio_duration;
     int16_t resolution_mask, *table;
     
@@ -71,7 +65,6 @@ extern void ek_voice_compute(
     resolution_mask = voice->resolution_mask;
     arpeggio_duration = voice->arpeggio_duration;
     arpeggiator = voice->arpeggiator;
-    vibrato = voice->vibrato;
     // Arp
     arpeggio_factor = ek_arpeggiator_get_factor(arpeggiator,arpeggio_step);
     arpeggio_shift = ek_arpeggiator_get_shift(arpeggiator,arpeggio_step);
@@ -85,7 +78,7 @@ extern void ek_voice_compute(
             arpeggio_tick = 0;
         }
         output_int32_buffer[i] = (table[phase>>TABLE_PHASE_SHIFT]&resolution_mask);
-        phase += ((phase_increment_int32_buffer[i]+(((lfo_int32_buffer[i]*(int32_t)(phase_increment_int32_buffer[i]>>20))*vibrato)>>8))*arpeggio_factor)>>arpeggio_shift;
+        phase += (phase_increment_int32_buffer[i]*arpeggio_factor)>>arpeggio_shift;
     }
     // Record params
     voice->phase = phase;

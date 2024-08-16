@@ -10,7 +10,6 @@ void ek_voice_change_table(voice_t voice, int16_t *table);
 void ek_voice_change_resolution_mask(voice_t voice, int16_t resolution_mask);
 void ek_voice_change_arpeggio_duration(voice_t voice, uint16_t arpeggio_duration);
 void ek_voice_change_arpeggiator(voice_t voice, arpeggiator_t arpeggiator);
-void ek_voice_change_vibrato(voice_t voice, uint8_t vibrato);
 void ek_voice_compute(
     voice_t voice,
     int32_t *lfo_int32_buffer,
