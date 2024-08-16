@@ -6,7 +6,6 @@
 
 typedef struct voice_s *voice_t;
 voice_t ek_voice_create();
-uint16_t ek_voice_get_ramp_step(voice_t voice);
 void ek_voice_change_table(voice_t voice, int16_t *table);
 void ek_voice_change_resolution_mask(voice_t voice, int16_t resolution_mask);
 void ek_voice_change_midi_note(voice_t voice, uint8_t midi_note);

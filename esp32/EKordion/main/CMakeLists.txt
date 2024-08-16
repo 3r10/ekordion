@@ -4,6 +4,7 @@ idf_component_register(SRCS
     "ek_lfo.c" 
     "ek_arpeggiator.c" 
     "ek_voice.c"
+    "ek_adsr.c"
     "ek_channel.c"
     "ek_synth.c" 
     "ek_reverb.c" 

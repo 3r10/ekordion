@@ -2,6 +2,7 @@
 #include "ek_channel.h"
 #include "ek_tables.h"
 #include "ek_voice.h"
+#include "ek_adsr.h"
 
 struct channel_s {
     uint8_t base_midi_note;
@@ -13,6 +14,7 @@ struct channel_s {
     uint8_t wet_volume;
     uint8_t n_voices;
     voice_t voices[N_VOICES];
+    ek_adsr_t envelopes[N_VOICES];
     int32_t last_sample;
 };
 
@@ -43,9 +45,11 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
         channel->i_buttons[i_voice] = -1;
         if (i_voice<channel->n_voices) {
             channel->voices[i_voice] = ek_voice_create();
+            channel->envelopes[i_voice] = ek_adsr_create();
         }
         else {
             channel->voices[i_voice] = NULL;
+            channel->envelopes[i_voice] = NULL;
         }
     }
     return channel;
@@ -115,7 +119,7 @@ static int8_t search_active_voice(channel_t channel, int16_t i_button) {
 
 static int8_t search_inactive_voice(channel_t channel) {
     for (int8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        if (channel->i_buttons[i_voice]==-1 && ek_voice_get_ramp_step(channel->voices[i_voice])==0) {
+        if (channel->i_buttons[i_voice]==-1 && ek_adsr_is_active(channel->envelopes[i_voice])==0) {
             return i_voice;
         }
     }
@@ -150,7 +154,7 @@ extern void ek_channel_compute(
     int32_t *input_output_dry_int32_buffer,
     int32_t *input_output_wet_int32_buffer    
 ) {
-    int32_t output[DMA_BUF_LEN], voice_output[DMA_BUF_LEN];
+    int32_t output[DMA_BUF_LEN], voice_output[DMA_BUF_LEN], envelope_output[DMA_BUF_LEN];
     
     uint8_t tremolo = channel->tremolo;
     uint8_t downsampling = channel->downsampling;
@@ -161,10 +165,11 @@ extern void ek_channel_compute(
     }
     for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
         uint8_t on_off = channel->i_buttons[i_voice]!=-1;
-        if (on_off || ek_voice_get_ramp_step(channel->voices[i_voice])) {
+        if (on_off || ek_adsr_is_active(channel->envelopes[i_voice])) {
             ek_voice_compute(channel->voices[i_voice],on_off,lfo_int32_buffer,voice_output);
+            ek_adsr_compute(channel->envelopes[i_voice],on_off,envelope_output);
             for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
-                output[i] += voice_output[i];
+                output[i] += voice_output[i]*envelope_output[i];
             }
         }
     }

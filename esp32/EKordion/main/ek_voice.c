@@ -1,8 +1,6 @@
 #include "ek_voice.h"
 #include "ek_tables.h"
 
-#define N_RAMP_STEPS 32 // ~ 1 ms ramp
-
 struct voice_s {
     int16_t *table;
     int16_t resolution_mask;
@@ -13,7 +11,6 @@ struct voice_s {
     uint8_t vibrato;
     uint32_t phase_increment;
     uint32_t phase;
-    uint16_t ramp_step;
 };
 
 extern voice_t ek_voice_create() {
@@ -30,14 +27,9 @@ extern voice_t ek_voice_create() {
     voice->vibrato = 0;
     voice->phase_increment = 0;
     voice->phase = 0;
-    voice->ramp_step = 0;
     voice->arpeggio_tick = 0;
     voice->arpeggio_step = 0;
     return voice;
-}
-
-extern uint16_t ek_voice_get_ramp_step(voice_t voice) {
-    return voice->ramp_step;
 }
 
 extern void ek_voice_change_table(voice_t voice, int16_t *table) {
@@ -75,8 +67,6 @@ extern void ek_voice_compute(
     uint8_t arpeggio_step, arpeggio_factor, arpeggio_shift, vibrato;
     uint16_t arpeggio_tick, arpeggio_duration;
     int16_t resolution_mask, *table;
-
-    uint16_t ramp_step = voice->ramp_step;
     
     // Get params
     phase = voice->phase;
@@ -94,12 +84,6 @@ extern void ek_voice_compute(
     arpeggio_shift = ek_arpeggiator_get_shift(arpeggiator,arpeggio_step);
 
     for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
-        if (on_off && ramp_step<N_RAMP_STEPS) {
-            ramp_step++;
-        }
-        if (!on_off && ramp_step>0) {
-            ramp_step--;
-        }
         arpeggio_tick++;
         if (arpeggio_tick>=arpeggio_duration) {
             arpeggio_step = (arpeggio_step+1)%ek_arpeggiator_get_length(arpeggiator);
@@ -107,12 +91,11 @@ extern void ek_voice_compute(
             arpeggio_shift = ek_arpeggiator_get_shift(arpeggiator,arpeggio_step);
             arpeggio_tick = 0;
         }
-        output_int32_buffer[i] = (table[phase>>TABLE_PHASE_SHIFT]&resolution_mask)*ramp_step;
+        output_int32_buffer[i] = (table[phase>>TABLE_PHASE_SHIFT]&resolution_mask);
         phase += ((phase_increment+(((lfo_int32_buffer[i]*(int32_t)(phase_increment>>20))*vibrato)>>8))*arpeggio_factor)>>arpeggio_shift;
     }
     // Record params
     voice->phase = phase;
-    voice->ramp_step = ramp_step;
     voice->arpeggio_tick = arpeggio_tick;
     voice->arpeggio_step = arpeggio_step;
 }
