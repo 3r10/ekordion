@@ -176,19 +176,14 @@ extern void ek_synth_compute(
     static int32_t dry_int32_buffer[DMA_BUF_LEN];
     static int32_t wet_int32_buffer[DMA_BUF_LEN];
 
-    // LFO
-    lfo_int32_buffer = ek_lfo_compute(lfo);
-    for (uint8_t i_channel=0; i_channel<N_CHANNELS; i_channel++) {
-        channel_outputs[i_channel] = ek_channel_compute(channels[i_channel],lfo_int32_buffer);
-    }
-    // FINAL MIX
     for (uint8_t i=0; i<DMA_BUF_LEN; i++) {
         dry_int32_buffer[i] = 0;
         wet_int32_buffer[i] = 0;
-        for (uint8_t i_channel=0; i_channel<N_CHANNELS; i_channel++) {
-            dry_int32_buffer[i] += channel_outputs[i_channel][i]*ek_channel_get_dry_volume(channels[i_channel]);
-            wet_int32_buffer[i] += channel_outputs[i_channel][i]*ek_channel_get_wet_volume(channels[i_channel]);
-        }
+    }
+    // LFO
+    lfo_int32_buffer = ek_lfo_compute(lfo);
+    for (uint8_t i_channel=0; i_channel<N_CHANNELS; i_channel++) {
+        ek_channel_compute(channels[i_channel],lfo_int32_buffer,dry_int32_buffer,wet_int32_buffer);
     }
     ek_reverb_compute(dry_int32_buffer,wet_int32_buffer,output_l_int32_buffer,output_r_int32_buffer);
 }

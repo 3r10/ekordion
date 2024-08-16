@@ -10,7 +10,7 @@ struct channel_s {
     uint8_t wet_volume;
     uint8_t n_voices;
     voice_t voices[N_VOICES];
-    int32_t output[DMA_BUF_LEN];
+    int32_t last_sample;
 };
 
 extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
@@ -26,6 +26,7 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
     channel->tremolo = 0;
     channel->dry_volume = 200;
     channel->wet_volume = 100;
+    channel->last_sample = 0;
     for (uint8_t i_voice=0; i_voice<N_VOICES; i_voice++) {
         if (i_voice<channel->n_voices) {
             channel->voices[i_voice] = ek_voice_create(base_midi_note);
@@ -34,18 +35,7 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
             channel->voices[i_voice] = NULL;
         }
     }
-    for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
-        channel->output[i] = 0;
-    }
     return channel;
-}
-
-extern uint8_t ek_channel_get_dry_volume(channel_t channel) {
-    return channel->dry_volume;
-}
-
-extern uint8_t ek_channel_get_wet_volume(channel_t channel) {
-    return channel->wet_volume;
 }
 
 extern void ek_channel_change_table(channel_t channel, int16_t *table) {
@@ -139,9 +129,14 @@ extern void ek_channel_button_off(channel_t channel, int16_t i_button) {
     ek_voice_change_i_button(channel->voices[i_voice],-1);
 }
 
-extern int32_t *ek_channel_compute(channel_t channel,int32_t *lfo_int32_buffer) {
-    int32_t *output = channel->output;
-    int32_t last_sample = output[DMA_BUF_LEN-1];
+extern void ek_channel_compute(
+    channel_t channel,
+    int32_t *lfo_int32_buffer,
+    int32_t *input_output_dry_int32_buffer,
+    int32_t *input_output_wet_int32_buffer    
+) {
+    int32_t output[DMA_BUF_LEN];
+    
     uint8_t tremolo = channel->tremolo;
     uint8_t downsampling = channel->downsampling;
     uint8_t downsampling_mask = DMA_BUF_LEN-1;
@@ -163,12 +158,19 @@ extern int32_t *ek_channel_compute(channel_t channel,int32_t *lfo_int32_buffer) 
         output[i] = (output[i]*factor)>>8;
     }
     // DOWNSAMPLING
-    for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
-        if (((i*downsampling)&downsampling_mask)<downsampling) {
-            output[i] = last_sample;
+    if (downsampling) {
+        int32_t last_sample = channel->last_sample;
+        for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
+            if (((i*downsampling)&downsampling_mask)<downsampling) {
+                output[i] = last_sample;
+            }
+            last_sample = output[i];
         }
-        last_sample = output[i];
+        channel->last_sample = last_sample;
     }
     // OUTPUT
-    return output;
+    for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
+        input_output_dry_int32_buffer[i] += output[i]*channel->dry_volume;
+        input_output_wet_int32_buffer[i] += output[i]*channel->wet_volume;
+    }
 }

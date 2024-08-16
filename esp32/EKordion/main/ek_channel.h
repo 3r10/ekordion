@@ -6,10 +6,6 @@
 
 typedef struct channel_s *channel_t;
 channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note);
-// GETTERS
-uint8_t ek_channel_get_dry_volume(channel_t channel);
-uint8_t ek_channel_get_wet_volume(channel_t channel);
-// SETTERS
 void ek_channel_change_table(channel_t channel, int16_t *table);
 void ek_channel_change_resolution_mask(channel_t channel, int16_t resolution_mask);
 void ek_channel_change_downsampling(channel_t channel, uint8_t downsampling);
@@ -23,6 +19,11 @@ void ek_channel_change_wet_volume(channel_t channel, uint8_t volume);
 //
 void ek_channel_button_on(channel_t channel, int16_t i_button);
 void ek_channel_button_off(channel_t channel, int16_t i_button);
-int32_t *ek_channel_compute(channel_t channel, int32_t *lfo_int32_buffer);
+void ek_channel_compute(    
+    channel_t channel,
+    int32_t *lfo_int32_buffer,
+    int32_t *input_output_dry_int32_buffer,
+    int32_t *input_output_wet_int32_buffer    
+);
 
 #endif
