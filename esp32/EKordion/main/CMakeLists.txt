@@ -2,6 +2,7 @@ idf_component_register(SRCS
     "ek_bluetooth.c" 
     "ek_keyboards.c" 
     "ek_lfo.c" 
+    "ek_phasor.c"
     "ek_arpeggiator.c" 
     "ek_voice.c"
     "ek_adsr.c"
