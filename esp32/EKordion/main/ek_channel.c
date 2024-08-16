@@ -4,6 +4,9 @@
 #include "ek_voice.h"
 
 struct channel_s {
+    uint8_t base_midi_note;
+    int8_t octave;
+    int16_t i_buttons[N_VOICES];
     uint8_t tremolo;
     uint8_t downsampling;
     uint8_t dry_volume;
@@ -13,6 +16,13 @@ struct channel_s {
     int32_t last_sample;
 };
 
+static void change_voice_midi_note(channel_t channel,uint8_t i_voice) {
+    ek_voice_change_midi_note(
+        channel->voices[i_voice],
+        channel->base_midi_note+12*channel->octave+channel->i_buttons[i_voice]
+    );
+}
+
 extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
     channel_t channel = (channel_t)malloc(sizeof(struct channel_s));
 
@@ -21,6 +31,8 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
         return channel;
     }
     // CHANNELS
+    channel->base_midi_note = base_midi_note;
+    channel->octave = 0;
     channel->n_voices = n_voices;
     channel->downsampling = 0;
     channel->tremolo = 0;
@@ -28,8 +40,9 @@ extern channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
     channel->wet_volume = 100;
     channel->last_sample = 0;
     for (uint8_t i_voice=0; i_voice<N_VOICES; i_voice++) {
+        channel->i_buttons[i_voice] = -1;
         if (i_voice<channel->n_voices) {
-            channel->voices[i_voice] = ek_voice_create(base_midi_note);
+            channel->voices[i_voice] = ek_voice_create();
         }
         else {
             channel->voices[i_voice] = NULL;
@@ -54,9 +67,10 @@ extern void ek_channel_change_downsampling(channel_t channel, uint8_t downsampli
     channel->downsampling = downsampling;
 }
 
-extern void ek_channel_change_octave(channel_t channel, int8_t octave) { 
+extern void ek_channel_change_octave(channel_t channel, int8_t octave) {
+    channel->octave = octave;
     for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        ek_voice_change_octave(channel->voices[i_voice],octave);
+        change_voice_midi_note(channel,i_voice);
     }
 }
 
@@ -92,7 +106,7 @@ extern void ek_channel_change_wet_volume(channel_t channel, uint8_t volume) {
 
 static int8_t search_active_voice(channel_t channel, int16_t i_button) {
     for (int8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        if (ek_voice_get_i_button(channel->voices[i_voice])==i_button) {
+        if (channel->i_buttons[i_voice]==i_button) {
             return i_voice;
         }
     }
@@ -101,7 +115,7 @@ static int8_t search_active_voice(channel_t channel, int16_t i_button) {
 
 static int8_t search_inactive_voice(channel_t channel) {
     for (int8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        if (ek_voice_get_i_button(channel->voices[i_voice])==-1 && ek_voice_get_ramp_step(channel->voices[i_voice])==0) {
+        if (channel->i_buttons[i_voice]==-1 && ek_voice_get_ramp_step(channel->voices[i_voice])==0) {
             return i_voice;
         }
     }
@@ -117,7 +131,8 @@ extern void ek_channel_button_on(channel_t channel, int16_t i_button) {
         return;
     }
     ESP_LOGI(TAG, "Channel : Button %d ON",i_button);
-    ek_voice_change_i_button(channel->voices[i_voice],i_button);
+    channel->i_buttons[i_voice] = i_button;
+    change_voice_midi_note(channel,i_voice);
 }
 
 extern void ek_channel_button_off(channel_t channel, int16_t i_button) {
@@ -126,7 +141,7 @@ extern void ek_channel_button_off(channel_t channel, int16_t i_button) {
         return;
     }
     ESP_LOGI(TAG, "Channel : Button %d OFF",i_button);
-    ek_voice_change_i_button(channel->voices[i_voice],-1);
+    channel->i_buttons[i_voice] = -1;
 }
 
 extern void ek_channel_compute(
@@ -135,7 +150,7 @@ extern void ek_channel_compute(
     int32_t *input_output_dry_int32_buffer,
     int32_t *input_output_wet_int32_buffer    
 ) {
-    int32_t output[DMA_BUF_LEN];
+    int32_t output[DMA_BUF_LEN], voice_output[DMA_BUF_LEN];
     
     uint8_t tremolo = channel->tremolo;
     uint8_t downsampling = channel->downsampling;
@@ -145,17 +160,20 @@ extern void ek_channel_compute(
         output[i] = 0;
     }
     for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        int32_t *voice_output = ek_voice_compute(channel->voices[i_voice],lfo_int32_buffer);
-        if (voice_output!=NULL) {
+        uint8_t on_off = channel->i_buttons[i_voice]!=-1;
+        if (on_off || ek_voice_get_ramp_step(channel->voices[i_voice])) {
+            ek_voice_compute(channel->voices[i_voice],on_off,lfo_int32_buffer,voice_output);
             for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
                 output[i] += voice_output[i];
             }
         }
     }
     // TREMOLO
-    for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
-        int32_t factor = ((1<<24)+(lfo_int32_buffer[i]-(1<<15))*tremolo)>>16;
-        output[i] = (output[i]*factor)>>8;
+    if (tremolo) {
+        for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
+            int32_t factor = ((1<<24)+(lfo_int32_buffer[i]-(1<<15))*tremolo)>>16;
+            output[i] = (output[i]*factor)>>8;
+        }
     }
     // DOWNSAMPLING
     if (downsampling) {
