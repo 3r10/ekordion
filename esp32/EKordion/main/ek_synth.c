@@ -7,8 +7,8 @@
 #include "ek_synth.h"
 
 static void (*change_functions[N_CHANGE_FUNCTIONS])(uint16_t length, uint8_t *data) = {0};
-static lfo_t lfo;
-static channel_t channels[N_CHANNELS];
+static ek_lfo_t lfo;
+static ek_channel_t channels[N_CHANNELS];
 
 static void change_custom_table(uint16_t length, uint8_t *data) {
     if (length!=2*CHANGE_TABLE_OFFSET+1) return;

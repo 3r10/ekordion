@@ -1,15 +1,15 @@
 #include "ek_lfo.h"
 #include "ek_tables.h"
 
-struct lfo_s {
+struct ek_lfo_s {
     uint32_t phase_increment;
     uint32_t phase;
     const int16_t *table;
     int32_t output[DMA_BUF_LEN];
 };
 
-extern lfo_t ek_lfo_create() {
-    lfo_t lfo = (lfo_t)malloc(sizeof(struct lfo_s));
+extern ek_lfo_t ek_lfo_create() {
+    ek_lfo_t lfo = (ek_lfo_t)malloc(sizeof(struct ek_lfo_s));
 
     if (lfo==NULL) {
         ESP_LOGI(TAG, "LFO : Unable to create !!!");
@@ -21,15 +21,15 @@ extern lfo_t ek_lfo_create() {
     return lfo;
 }
 
-extern void ek_lfo_change_phase_increment(lfo_t lfo, uint32_t phase_increment) {
+extern void ek_lfo_change_phase_increment(ek_lfo_t lfo, uint32_t phase_increment) {
     lfo->phase_increment = phase_increment;
 }
 
-extern void ek_lfo_change_table(lfo_t lfo, const int16_t *table) {
+extern void ek_lfo_change_table(ek_lfo_t lfo, const int16_t *table) {
     lfo->table = table;
 }
 
-extern int32_t *ek_lfo_compute(lfo_t lfo) {
+extern int32_t *ek_lfo_compute(ek_lfo_t lfo) {
     uint32_t phase = lfo->phase;
     uint32_t phase_increment = lfo->phase_increment;
     const int16_t *table = lfo->table;
