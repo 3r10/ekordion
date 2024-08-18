@@ -139,6 +139,69 @@ static void change_envelope_r(uint16_t length, uint8_t *data) {
     ek_channel_change_envelope_r(channels[i_channel],data[1]);
 }
 
+static void change_filter_low_f(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_filter_low_f(channels[i_channel],data[1]);
+}
+
+static void change_filter_high_f(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_filter_high_f(channels[i_channel],data[1]);
+}
+
+static void change_filter_q(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_filter_q(channels[i_channel],data[1]);
+}
+
+static void change_filter_mod_a(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_filter_mod_a(channels[i_channel],data[1]);
+}
+
+static void change_filter_mod_d(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_filter_mod_d(channels[i_channel],data[1]);
+}
+
+static void change_filter_mod_s(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_filter_mod_s(channels[i_channel],data[1]);
+}
+
+static void change_filter_mod_r(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_filter_mod_r(channels[i_channel],data[1]);
+}
+
 static void change_dry_volume(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
 
@@ -185,6 +248,13 @@ extern void ek_synth_init() {
     change_functions[CHANGE_ENVELOPE_D] = &change_envelope_d;
     change_functions[CHANGE_ENVELOPE_S] = &change_envelope_s;
     change_functions[CHANGE_ENVELOPE_R] = &change_envelope_r;
+    change_functions[CHANGE_FILTER_LOW_F] = &change_filter_low_f;
+    change_functions[CHANGE_FILTER_HIGH_F] = &change_filter_high_f;
+    change_functions[CHANGE_FILTER_Q] = &change_filter_q;
+    change_functions[CHANGE_FILTER_MOD_A] = &change_filter_mod_a;
+    change_functions[CHANGE_FILTER_MOD_D] = &change_filter_mod_d;
+    change_functions[CHANGE_FILTER_MOD_S] = &change_filter_mod_s;
+    change_functions[CHANGE_FILTER_MOD_R] = &change_filter_mod_r;
     change_functions[CHANGE_DRY_VOLUME] = &change_dry_volume;
     change_functions[CHANGE_WET_VOLUME] = &change_wet_volume;
 }

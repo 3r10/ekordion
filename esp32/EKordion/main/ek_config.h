@@ -36,10 +36,17 @@ static const char* TAG = "EKordion";
 #define CHANGE_ENVELOPE_D        14
 #define CHANGE_ENVELOPE_S        15
 #define CHANGE_ENVELOPE_R        16
-#define CHANGE_TREMOLO           17
-#define CHANGE_DRY_VOLUME        18
-#define CHANGE_WET_VOLUME        19
-#define N_CHANGE_FUNCTIONS       20
+#define CHANGE_FILTER_LOW_F      17
+#define CHANGE_FILTER_HIGH_F     18
+#define CHANGE_FILTER_Q          19
+#define CHANGE_FILTER_MOD_A      20
+#define CHANGE_FILTER_MOD_D      21
+#define CHANGE_FILTER_MOD_S      22
+#define CHANGE_FILTER_MOD_R      23
+#define CHANGE_TREMOLO           24
+#define CHANGE_DRY_VOLUME        25
+#define CHANGE_WET_VOLUME        26
+#define N_CHANGE_FUNCTIONS       27
 
 /* GENERAL I2S PARAMETERS */
 #define SAMPLE_RATE     44100

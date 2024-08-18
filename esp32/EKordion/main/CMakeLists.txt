@@ -5,6 +5,7 @@ idf_component_register(SRCS
     "ek_phasor.c"
     "ek_arpeggiator.c"
     "ek_adsr.c"
+    "ek_filter.c"
     "ek_channel.c"
     "ek_synth.c" 
     "ek_reverb.c" 

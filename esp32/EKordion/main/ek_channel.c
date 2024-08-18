@@ -4,6 +4,7 @@
 #include "ek_arpeggiator.h"
 #include "ek_tables.h"
 #include "ek_adsr.h"
+#include "ek_filter.h"
 
 struct ek_channel_s {
     uint8_t n_voices;
@@ -15,14 +16,18 @@ struct ek_channel_s {
     int16_t *table;
     int16_t resolution_mask;
     ek_adsr_parameters_t envelope_parameters;
+    ek_adsr_parameters_t filter_mod_parameters;
     uint8_t tremolo;
     uint8_t downsampling;
+    ek_filter_parameters_t filter_parameters;
     uint8_t dry_volume;
     uint8_t wet_volume;
     ek_phasor_t phasors[N_VOICES];
     ek_arpeggiator_t arpeggiators[N_VOICES];
     int32_t phases[N_VOICES];
     ek_adsr_t envelopes[N_VOICES];
+    ek_adsr_t filter_mods[N_VOICES];
+    ek_filter_t filters[N_VOICES];
     int32_t last_sample;
 };
 
@@ -47,8 +52,10 @@ extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) 
     channel->table = tables[0];
     channel->resolution_mask = -1;
     channel->envelope_parameters = ek_adsr_parameters_create();
+    channel->filter_mod_parameters = ek_adsr_parameters_create();
     channel->downsampling = 0;
     channel->tremolo = 0;
+    channel->filter_parameters = ek_filter_parameters_create();
     channel->dry_volume = 200;
     channel->wet_volume = 100;
     channel->last_sample = 0;
@@ -58,11 +65,15 @@ extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) 
             channel->phasors[i_voice] = ek_phasor_create();
             channel->arpeggiators[i_voice] = ek_arpeggiator_create();
             channel->envelopes[i_voice] = ek_adsr_create();
+            channel->filter_mods[i_voice] = ek_adsr_create();
+            channel->filters[i_voice] = ek_filter_create();
         }
         else {
             channel->phasors[i_voice] = NULL;
             channel->arpeggiators[i_voice] = NULL;
             channel->envelopes[i_voice] = NULL;
+            channel->filter_mods[i_voice] = NULL;
+            channel->filters[i_voice] = NULL;
         }
     }
     return channel;
@@ -115,6 +126,34 @@ extern void ek_channel_change_envelope_r(ek_channel_t channel, uint8_t r) {
     ek_adsr_parameters_change_r(channel->envelope_parameters,r);
 }
 
+extern void ek_channel_change_filter_low_f(ek_channel_t channel, uint8_t low_f_slider) {
+    ek_filter_parameters_change_low_f(channel->filter_parameters,low_f_slider);
+}
+
+extern void ek_channel_change_filter_high_f(ek_channel_t channel, uint8_t high_f_slider) {
+    ek_filter_parameters_change_high_f(channel->filter_parameters,high_f_slider);
+}
+
+extern void ek_channel_change_filter_q(ek_channel_t channel, uint8_t q_slider) {
+    ek_filter_parameters_change_q(channel->filter_parameters,q_slider);
+}
+
+extern void ek_channel_change_filter_mod_a(ek_channel_t channel, uint8_t a) {
+    ek_adsr_parameters_change_a(channel->filter_mod_parameters,a);
+}
+
+extern void ek_channel_change_filter_mod_d(ek_channel_t channel, uint8_t d) {
+    ek_adsr_parameters_change_d(channel->filter_mod_parameters,d);
+}
+
+extern void ek_channel_change_filter_mod_s(ek_channel_t channel, uint8_t s) {
+    ek_adsr_parameters_change_s(channel->filter_mod_parameters,s);
+}
+
+extern void ek_channel_change_filter_mod_r(ek_channel_t channel, uint8_t r) {
+    ek_adsr_parameters_change_r(channel->filter_mod_parameters,r);
+}
+
 extern void ek_channel_change_tremolo(ek_channel_t channel, uint8_t tremolo) {
     channel->tremolo = tremolo;
 }
@@ -138,7 +177,11 @@ static int8_t search_active_voice(ek_channel_t channel, int16_t i_button) {
 
 static int8_t search_inactive_voice(ek_channel_t channel) {
     for (int8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        if (ek_phasor_get_note(channel->phasors[i_voice])==-1 && ek_adsr_is_active(channel->envelopes[i_voice])==0) {
+        if (
+            ek_phasor_get_note(channel->phasors[i_voice])==-1 
+            && ek_adsr_is_active(channel->envelopes[i_voice])==0
+            && ek_adsr_is_active(channel->filter_mods[i_voice])==0
+        ) {
             return i_voice;
         }
     }
@@ -197,7 +240,8 @@ extern void ek_channel_compute(
     int32_t *input_output_dry_int32_buffer,
     int32_t *input_output_wet_int32_buffer    
 ) {
-    int32_t output[DMA_BUF_LEN], phase_increment[DMA_BUF_LEN], voice_output[DMA_BUF_LEN], envelope_output[DMA_BUF_LEN];
+    int32_t output[DMA_BUF_LEN], phase_increment[DMA_BUF_LEN], voice_output[DMA_BUF_LEN];
+    int32_t envelope_output[DMA_BUF_LEN], filter_mod_output[DMA_BUF_LEN];
     
     uint8_t tremolo = channel->tremolo;
     uint8_t downsampling = channel->downsampling;
@@ -207,7 +251,11 @@ extern void ek_channel_compute(
     }
     for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
         uint8_t on_off = ek_phasor_get_note(channel->phasors[i_voice])!=-1;
-        if (on_off || ek_adsr_is_active(channel->envelopes[i_voice])) {
+        if (
+            on_off 
+            || ek_adsr_is_active(channel->envelopes[i_voice]) 
+            || ek_adsr_is_active(channel->filter_mods[i_voice])
+        ) {
             ek_phasor_compute(channel->phasors[i_voice],phase_increment);
             if (channel->vibrato) {
                 compute_vibrato(channel,lfo_int32_buffer,phase_increment);
@@ -224,6 +272,10 @@ extern void ek_channel_compute(
             ek_adsr_compute(channel->envelopes[i_voice],on_off,
             channel->envelope_parameters,
             envelope_output);
+            ek_adsr_compute(channel->filter_mods[i_voice],on_off,
+            channel->filter_mod_parameters,
+            filter_mod_output);
+            ek_dynamic_filter_compute(channel->filters[i_voice], channel->filter_parameters, filter_mod_output, voice_output);
             for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
                 output[i] += (voice_output[i]*(envelope_output[i]>>16))>>9;
             }

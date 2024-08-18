@@ -57,9 +57,16 @@ const val CHANGE_ENVELOPE_A = 13;
 const val CHANGE_ENVELOPE_D = 14;
 const val CHANGE_ENVELOPE_S = 15;
 const val CHANGE_ENVELOPE_R = 16;
-const val CHANGE_TREMOLO = 17;
-const val CHANGE_DRY_VOLUME = 18;
-const val CHANGE_WET_VOLUME = 19;
+const val CHANGE_FILTER_LOW_F = 17;
+const val CHANGE_FILTER_HIGH_F = 18;
+const val CHANGE_FILTER_Q = 19;
+const val CHANGE_FILTER_MOD_A = 20;
+const val CHANGE_FILTER_MOD_D = 21;
+const val CHANGE_FILTER_MOD_S = 22;
+const val CHANGE_FILTER_MOD_R = 23;
+const val CHANGE_TREMOLO = 24;
+const val CHANGE_DRY_VOLUME = 25;
+const val CHANGE_WET_VOLUME = 26;
 
 const val CHANNEL_BASS = 0;
 const val CHANNEL_CHORDS = 1;
@@ -217,6 +224,13 @@ class MainActivity : ComponentActivity() {
         EKSlider(title = "Envelope D", id = CHANGE_ENVELOPE_D, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Envelope S", id = CHANGE_ENVELOPE_S, channel = channel, maxValue = 255, initialValue = 255)
         EKSlider(title = "Envelope R", id = CHANGE_ENVELOPE_R, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Filter low F", id = CHANGE_FILTER_LOW_F, channel = channel, maxValue = 255, initialValue = 255)
+        EKSlider(title = "Filter high F", id = CHANGE_FILTER_HIGH_F, channel = channel, maxValue = 255, initialValue = 255)
+        EKSlider(title = "Filter Q", id = CHANGE_FILTER_Q, channel = channel, maxValue = 255, initialValue = 50)
+        EKSlider(title = "Filter mod A", id = CHANGE_FILTER_MOD_A, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Filter mod D", id = CHANGE_FILTER_MOD_D, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Filter mod S", id = CHANGE_FILTER_MOD_S, channel = channel, maxValue = 255, initialValue = 255)
+        EKSlider(title = "Filter mod R", id = CHANGE_FILTER_MOD_R, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Tremolo", id = CHANGE_TREMOLO, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Dry volume", id = CHANGE_DRY_VOLUME, channel = channel, maxValue = 255, initialValue = 200)
         EKSlider(title = "Wet volume", id = CHANGE_WET_VOLUME, channel = channel, maxValue = 255, initialValue = 100)
