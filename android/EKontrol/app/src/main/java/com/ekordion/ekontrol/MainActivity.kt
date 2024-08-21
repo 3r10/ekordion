@@ -53,20 +53,22 @@ const val CHANGE_OCTAVE = 9;
 const val CHANGE_ARPEGGIO_DURATION = 10;
 const val CHANGE_ARPEGGIATOR = 11;
 const val CHANGE_VIBRATO = 12;
-const val CHANGE_ENVELOPE_A = 13;
-const val CHANGE_ENVELOPE_D = 14;
-const val CHANGE_ENVELOPE_S = 15;
-const val CHANGE_ENVELOPE_R = 16;
-const val CHANGE_FILTER_LOW_F = 17;
-const val CHANGE_FILTER_HIGH_F = 18;
-const val CHANGE_FILTER_Q = 19;
-const val CHANGE_FILTER_MOD_A = 20;
-const val CHANGE_FILTER_MOD_D = 21;
-const val CHANGE_FILTER_MOD_S = 22;
-const val CHANGE_FILTER_MOD_R = 23;
-const val CHANGE_TREMOLO = 24;
-const val CHANGE_DRY_VOLUME = 25;
-const val CHANGE_WET_VOLUME = 26;
+const val CHANGE_N_OSCILLATORS = 13;
+const val CHANGE_DETUNE_FACTOR = 14;
+const val CHANGE_ENVELOPE_A = 15;
+const val CHANGE_ENVELOPE_D = 16;
+const val CHANGE_ENVELOPE_S = 17;
+const val CHANGE_ENVELOPE_R = 18;
+const val CHANGE_FILTER_LOW_F = 19;
+const val CHANGE_FILTER_HIGH_F = 20;
+const val CHANGE_FILTER_Q = 21;
+const val CHANGE_FILTER_MOD_A = 22;
+const val CHANGE_FILTER_MOD_D = 23;
+const val CHANGE_FILTER_MOD_S = 24;
+const val CHANGE_FILTER_MOD_R = 25;
+const val CHANGE_TREMOLO = 26;
+const val CHANGE_DRY_VOLUME = 27;
+const val CHANGE_WET_VOLUME = 28;
 
 const val CHANNEL_BASS = 0;
 const val CHANNEL_CHORDS = 1;
@@ -220,6 +222,8 @@ class MainActivity : ComponentActivity() {
         EKSlider(title = "Arpeggio duration", id = CHANGE_ARPEGGIO_DURATION, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Arpeggiator", id = CHANGE_ARPEGGIATOR, channel = channel, maxValue = 7, initialValue = 0)
         EKSlider(title = "Vibrato", id = CHANGE_VIBRATO, channel = channel, maxValue = 255, initialValue = 0)
+        EKSlider(title = "Number of oscillators", id = CHANGE_N_OSCILLATORS, channel = channel, maxValue = 7, initialValue = 0)
+        EKSlider(title = "Detune", id = CHANGE_DETUNE_FACTOR, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Envelope A", id = CHANGE_ENVELOPE_A, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Envelope D", id = CHANGE_ENVELOPE_D, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Envelope S", id = CHANGE_ENVELOPE_S, channel = channel, maxValue = 255, initialValue = 255)

@@ -2,6 +2,7 @@
 #include "ek_channel.h"
 #include "ek_phasor.h"
 #include "ek_arpeggiator.h"
+#include "ek_oscillator.h"
 #include "ek_tables.h"
 #include "ek_adsr.h"
 #include "ek_filter.h"
@@ -13,8 +14,7 @@ struct ek_channel_s {
     uint8_t vibrato;
     uint8_t i_arpeggiator_pattern;
     uint16_t arpeggio_duration;
-    int16_t *table;
-    int16_t resolution_mask;
+    ek_oscillator_parameters_t oscillator_parameters;
     ek_adsr_parameters_t envelope_parameters;
     ek_adsr_parameters_t filter_mod_parameters;
     uint8_t tremolo;
@@ -24,7 +24,7 @@ struct ek_channel_s {
     uint8_t wet_volume;
     ek_phasor_t phasors[N_VOICES];
     ek_arpeggiator_t arpeggiators[N_VOICES];
-    int32_t phases[N_VOICES];
+    ek_oscillator_t oscillators[N_VOICES];
     ek_adsr_t envelopes[N_VOICES];
     ek_adsr_t filter_mods[N_VOICES];
     ek_filter_t filters[N_VOICES];
@@ -49,8 +49,7 @@ extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) 
     channel->vibrato = 0;
     channel->i_arpeggiator_pattern = 0;
     channel->arpeggio_duration = SAMPLE_RATE;
-    channel->table = tables[0];
-    channel->resolution_mask = -1;
+    channel->oscillator_parameters = ek_oscillator_parameters_create();
     channel->envelope_parameters = ek_adsr_parameters_create();
     channel->filter_mod_parameters = ek_adsr_parameters_create();
     channel->downsampling = 0;
@@ -60,10 +59,10 @@ extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) 
     channel->wet_volume = 100;
     channel->last_sample = 0;
     for (uint8_t i_voice=0; i_voice<N_VOICES; i_voice++) {
-        channel->phases[i_voice] = 0;
         if (i_voice<channel->n_voices) {
             channel->phasors[i_voice] = ek_phasor_create();
             channel->arpeggiators[i_voice] = ek_arpeggiator_create();
+            channel->oscillators[i_voice] = ek_oscillator_create();
             channel->envelopes[i_voice] = ek_adsr_create();
             channel->filter_mods[i_voice] = ek_adsr_create();
             channel->filters[i_voice] = ek_filter_create();
@@ -71,6 +70,7 @@ extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) 
         else {
             channel->phasors[i_voice] = NULL;
             channel->arpeggiators[i_voice] = NULL;
+            channel->oscillators[i_voice] = NULL;
             channel->envelopes[i_voice] = NULL;
             channel->filter_mods[i_voice] = NULL;
             channel->filters[i_voice] = NULL;
@@ -79,12 +79,12 @@ extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) 
     return channel;
 }
 
-extern void ek_channel_change_table(ek_channel_t channel, int16_t *table) {
-    channel->table = table;
+extern void ek_channel_change_table(ek_channel_t channel,  const int16_t *table) {
+    ek_oscillator_parameters_change_table(channel->oscillator_parameters,table);
 }
 
 extern void ek_channel_change_resolution_mask(ek_channel_t channel, int16_t resolution_mask) {
-    channel->resolution_mask = resolution_mask;
+    ek_oscillator_parameters_change_resolution_mask(channel->oscillator_parameters,resolution_mask);
 }
 
 extern void ek_channel_change_downsampling(ek_channel_t channel, uint8_t downsampling) {
@@ -96,6 +96,14 @@ extern void ek_channel_change_octave(ek_channel_t channel, int8_t octave) {
     for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
         change_voice_midi_note(channel,i_voice);
     }
+}
+
+extern void ek_channel_change_n_oscillators(ek_channel_t channel, uint8_t n_oscillators) {
+    ek_oscillator_parameters_change_n_oscillators(channel->oscillator_parameters,n_oscillators);
+}
+
+extern void ek_channel_change_detune_factor(ek_channel_t channel, uint8_t detune_factor) {
+    ek_oscillator_parameters_change_detune_factor(channel->oscillator_parameters,detune_factor);
 }
 
 extern void ek_channel_change_arpeggio_duration(ek_channel_t channel, uint16_t arpeggio_duration) {
@@ -218,22 +226,6 @@ static void compute_vibrato(ek_channel_t channel, int32_t *lfo_int32_buffer, int
     }
 }
 
-static void compute_voice(ek_channel_t channel,
-    int8_t i_voice,
-    int32_t *phase_increment_int32_buffer,
-    int32_t *output_int32_buffer
-) {
-    uint32_t phase = channel->phases[i_voice];
-    int16_t *table = channel->table;
-    int16_t resolution_mask = channel->resolution_mask;
-    
-    for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
-        output_int32_buffer[i] = (table[phase>>TABLE_PHASE_SHIFT]&resolution_mask);
-        phase += phase_increment_int32_buffer[i];
-    }
-    channel->phases[i_voice] = phase;
-}
-
 extern void ek_channel_compute(
     ek_channel_t channel,
     int32_t *lfo_int32_buffer,
@@ -268,10 +260,16 @@ extern void ek_channel_compute(
                     phase_increment
                 );
             }
-            compute_voice(channel,i_voice,phase_increment,voice_output);
-            ek_adsr_compute(channel->envelopes[i_voice],on_off,
-            channel->envelope_parameters,
-            envelope_output);
+            ek_oscillator_compute(
+                channel->oscillators[i_voice],
+                channel->oscillator_parameters,
+                phase_increment,voice_output
+            );
+            ek_adsr_compute(
+                channel->envelopes[i_voice],on_off,
+                channel->envelope_parameters,
+                envelope_output
+            );
             ek_adsr_compute(channel->filter_mods[i_voice],on_off,
             channel->filter_mod_parameters,
             filter_mod_output);

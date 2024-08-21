@@ -94,6 +94,24 @@ static void change_vibrato(uint16_t length, uint8_t *data) {
     ek_channel_change_vibrato(channels[i_channel],data[1]);
 }
 
+static void change_n_oscillators(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_n_oscillators(channels[i_channel],data[1]+1);
+}
+
+static void change_detune_factor(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=N_CHANNELS) return;
+    ek_channel_change_detune_factor(channels[i_channel],data[1]);
+}
+
 static void change_tremolo(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
 
@@ -243,6 +261,8 @@ extern void ek_synth_init() {
     change_functions[CHANGE_ARPEGGIO_DURATION] = &change_arpeggio_duration;
     change_functions[CHANGE_ARPEGGIATOR] = &change_arpeggiator;
     change_functions[CHANGE_VIBRATO] = &change_vibrato;
+    change_functions[CHANGE_N_OSCILLATORS] = &change_n_oscillators;
+    change_functions[CHANGE_DETUNE_FACTOR] = &change_detune_factor;
     change_functions[CHANGE_TREMOLO] = &change_tremolo;
     change_functions[CHANGE_ENVELOPE_A] = &change_envelope_a;
     change_functions[CHANGE_ENVELOPE_D] = &change_envelope_d;
