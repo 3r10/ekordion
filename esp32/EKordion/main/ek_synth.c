@@ -68,6 +68,15 @@ static void change_octave(uint16_t length, uint8_t *data) {
     ek_channel_change_octave(channels[i_channel],((int8_t)data[1])-3);
 }
 
+static void change_monopoly_mode(uint16_t length, uint8_t *data) {
+    uint8_t i_channel;
+    
+    if (length!=2) return;
+    i_channel = data[0];
+    if (i_channel>=synth_n_channels) return;
+    ek_channel_change_monopoly_mode(channels[i_channel],data[1]);
+}
+
 static void change_arpeggio_duration(uint16_t length, uint8_t *data) {
     uint8_t i_channel;
     
@@ -271,6 +280,7 @@ extern void ek_synth_init(
     change_functions[CHANGE_RESOLUTION] = &change_resolution;
     change_functions[CHANGE_DOWNSAMPLING] = &change_downsampling;
     change_functions[CHANGE_OCTAVE] = &change_octave;
+    change_functions[CHANGE_MONOPOLY_MODE] = &change_monopoly_mode;
     change_functions[CHANGE_ARPEGGIO_DURATION] = &change_arpeggio_duration;
     change_functions[CHANGE_ARPEGGIATOR] = &change_arpeggiator;
     change_functions[CHANGE_VIBRATO] = &change_vibrato;

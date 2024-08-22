@@ -50,25 +50,26 @@ const val CHANGE_WAVETABLE = 6;
 const val CHANGE_RESOLUTION = 7;
 const val CHANGE_DOWNSAMPLING = 8;
 const val CHANGE_OCTAVE = 9;
-const val CHANGE_ARPEGGIO_DURATION = 10;
-const val CHANGE_ARPEGGIATOR = 11;
-const val CHANGE_VIBRATO = 12;
-const val CHANGE_N_OSCILLATORS = 13;
-const val CHANGE_DETUNE_FACTOR = 14;
-const val CHANGE_ENVELOPE_A = 15;
-const val CHANGE_ENVELOPE_D = 16;
-const val CHANGE_ENVELOPE_S = 17;
-const val CHANGE_ENVELOPE_R = 18;
-const val CHANGE_FILTER_LOW_F = 19;
-const val CHANGE_FILTER_HIGH_F = 20;
-const val CHANGE_FILTER_Q = 21;
-const val CHANGE_FILTER_MOD_A = 22;
-const val CHANGE_FILTER_MOD_D = 23;
-const val CHANGE_FILTER_MOD_S = 24;
-const val CHANGE_FILTER_MOD_R = 25;
-const val CHANGE_TREMOLO = 26;
-const val CHANGE_DRY_VOLUME = 27;
-const val CHANGE_WET_VOLUME = 28;
+const val CHANGE_MONOPOLY_MODE = 10;
+const val CHANGE_ARPEGGIO_DURATION = 11;
+const val CHANGE_ARPEGGIATOR = 12;
+const val CHANGE_VIBRATO = 13;
+const val CHANGE_N_OSCILLATORS = 14;
+const val CHANGE_DETUNE_FACTOR = 15;
+const val CHANGE_ENVELOPE_A = 16;
+const val CHANGE_ENVELOPE_D = 17;
+const val CHANGE_ENVELOPE_S = 18;
+const val CHANGE_ENVELOPE_R = 19;
+const val CHANGE_FILTER_LOW_F = 20;
+const val CHANGE_FILTER_HIGH_F = 21;
+const val CHANGE_FILTER_Q = 22;
+const val CHANGE_FILTER_MOD_A = 23;
+const val CHANGE_FILTER_MOD_D = 24;
+const val CHANGE_FILTER_MOD_S = 25;
+const val CHANGE_FILTER_MOD_R = 26;
+const val CHANGE_TREMOLO = 27;
+const val CHANGE_DRY_VOLUME = 28;
+const val CHANGE_WET_VOLUME = 29;
 
 const val CHANNEL_BASS = 0;
 const val CHANNEL_CHORDS = 1;
@@ -219,6 +220,7 @@ class MainActivity : ComponentActivity() {
         EKSlider(title = "Resolution", id = CHANGE_RESOLUTION, channel = channel, maxValue = 15, initialValue = 0)
         EKSlider(title = "Downsampling", id = CHANGE_DOWNSAMPLING, channel = channel, maxValue = 31, initialValue = 0)
         EKSlider(title = "Octave", id = CHANGE_OCTAVE, channel = channel, maxValue = 6, initialValue = 3)
+        EKSlider(title = "Monopoly mode", id = CHANGE_MONOPOLY_MODE, channel = channel, maxValue = 1, initialValue = 0)
         EKSlider(title = "Arpeggio duration", id = CHANGE_ARPEGGIO_DURATION, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Arpeggiator", id = CHANGE_ARPEGGIATOR, channel = channel, maxValue = 7, initialValue = 0)
         EKSlider(title = "Vibrato", id = CHANGE_VIBRATO, channel = channel, maxValue = 255, initialValue = 0)

@@ -94,6 +94,10 @@ extern void ek_channel_change_octave(ek_channel_t channel, int8_t octave) {
     ek_monopoly_change_octave(channel->monopoly,octave);
 }
 
+extern void ek_channel_change_monopoly_mode(ek_channel_t channel, uint8_t mode) {
+    ek_monopoly_change_mode(channel->monopoly,mode);
+}
+
 extern void ek_channel_change_n_oscillators(ek_channel_t channel, uint8_t n_oscillators) {
     ek_oscillator_parameters_change_n_oscillators(channel->oscillator_parameters,n_oscillators);
 }
