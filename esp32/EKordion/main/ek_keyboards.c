@@ -1,6 +1,10 @@
 #include "ek_keyboards.h"
 #include "ek_synth.h"
 
+#define BASS_CHANNEL 0
+#define CHORDS_CHANNEL 1
+#define LEAD_CHANNEL 2
+
 static uint8_t left_switch_to_channel[N_LEFT_SWITCHES] = {
     BASS_CHANNEL, BASS_CHANNEL, CHORDS_CHANNEL, CHORDS_CHANNEL,
     BASS_CHANNEL, BASS_CHANNEL, CHORDS_CHANNEL, CHORDS_CHANNEL,

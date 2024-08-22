@@ -6,9 +6,10 @@
 #include "ek_reverb.h"
 #include "ek_synth.h"
 
+static uint8_t synth_n_channels = 0;
 static void (*change_functions[N_CHANGE_FUNCTIONS])(uint16_t length, uint8_t *data) = {0};
 static ek_lfo_t lfo;
-static ek_channel_t channels[N_CHANNELS];
+static ek_channel_t *channels;
 
 static void change_custom_table(uint16_t length, uint8_t *data) {
     if (length!=2*CHANGE_TABLE_OFFSET+1) return;
@@ -32,7 +33,7 @@ static void change_table(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     if (data[1]>=N_TABLES) return;
     ek_channel_change_table(channels[i_channel],tables[data[1]]);
 }
@@ -42,7 +43,7 @@ static void change_resolution(uint16_t length, uint8_t *data) {
     
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     if (data[1]>15) return;
     ek_channel_change_resolution_mask(channels[i_channel],~((1<<data[1])-1));
 }
@@ -52,7 +53,7 @@ static void change_downsampling(uint16_t length, uint8_t *data) {
     
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     if (data[1]>=DMA_BUF_LEN) return;
     ek_channel_change_downsampling(channels[i_channel],data[1]);
 }
@@ -62,7 +63,7 @@ static void change_octave(uint16_t length, uint8_t *data) {
     
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     if (data[1]>6) return;
     ek_channel_change_octave(channels[i_channel],((int8_t)data[1])-3);
 }
@@ -72,7 +73,7 @@ static void change_arpeggio_duration(uint16_t length, uint8_t *data) {
     
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_arpeggio_duration(channels[i_channel],(1+(uint16_t)data[1])<<4);
 }
 
@@ -81,7 +82,7 @@ static void change_arpeggiator(uint16_t length, uint8_t *data) {
     
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_arpeggiator_pattern(channels[i_channel],data[1]);
 }
 
@@ -90,7 +91,7 @@ static void change_vibrato(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_vibrato(channels[i_channel],data[1]);
 }
 
@@ -99,7 +100,7 @@ static void change_n_oscillators(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_n_oscillators(channels[i_channel],data[1]+1);
 }
 
@@ -108,7 +109,7 @@ static void change_detune_factor(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_detune_factor(channels[i_channel],data[1]);
 }
 
@@ -117,7 +118,7 @@ static void change_tremolo(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_tremolo(channels[i_channel],data[1]);
 }
 
@@ -126,7 +127,7 @@ static void change_envelope_a(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_envelope_a(channels[i_channel],data[1]);
 }
 
@@ -135,7 +136,7 @@ static void change_envelope_d(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_envelope_d(channels[i_channel],data[1]);
 }
 
@@ -144,7 +145,7 @@ static void change_envelope_s(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_envelope_s(channels[i_channel],data[1]);
 }
 
@@ -153,7 +154,7 @@ static void change_envelope_r(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_envelope_r(channels[i_channel],data[1]);
 }
 
@@ -162,7 +163,7 @@ static void change_filter_low_f(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_filter_low_f(channels[i_channel],data[1]);
 }
 
@@ -171,7 +172,7 @@ static void change_filter_high_f(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_filter_high_f(channels[i_channel],data[1]);
 }
 
@@ -180,7 +181,7 @@ static void change_filter_q(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_filter_q(channels[i_channel],data[1]);
 }
 
@@ -189,7 +190,7 @@ static void change_filter_mod_a(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_filter_mod_a(channels[i_channel],data[1]);
 }
 
@@ -198,7 +199,7 @@ static void change_filter_mod_d(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_filter_mod_d(channels[i_channel],data[1]);
 }
 
@@ -207,7 +208,7 @@ static void change_filter_mod_s(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_filter_mod_s(channels[i_channel],data[1]);
 }
 
@@ -216,7 +217,7 @@ static void change_filter_mod_r(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_filter_mod_r(channels[i_channel],data[1]);
 }
 
@@ -225,7 +226,7 @@ static void change_dry_volume(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_dry_volume(channels[i_channel],data[1]);
 }
 
@@ -234,17 +235,29 @@ static void change_wet_volume(uint16_t length, uint8_t *data) {
 
     if (length!=2) return;
     i_channel = data[0];
-    if (i_channel>=N_CHANNELS) return;
+    if (i_channel>=synth_n_channels) return;
     ek_channel_change_wet_volume(channels[i_channel],data[1]);
 }
 
-extern void ek_synth_init() {
+extern void ek_synth_init(
+    uint8_t n_channels, 
+    uint8_t *n_voices_array, 
+    uint8_t *base_midi_note_array
+) {
     // LFO
     lfo = ek_lfo_create();
     // CHANNELS
-    channels[BASS_CHANNEL] = ek_channel_create(2,BASS_BASE_MIDI_NOTE);
-    channels[CHORDS_CHANNEL] = ek_channel_create(2,CHORDS_BASE_MIDI_NOTE);
-    channels[LEAD_CHANNEL] = ek_channel_create(N_VOICES,LEAD_BASE_MIDI_NOTE);
+    channels = (ek_channel_t *)malloc(n_channels*sizeof(ek_channel_t));
+    if (channels==NULL) {
+        return;
+    }
+    synth_n_channels = n_channels;
+    for (uint8_t i_channel=0; i_channel<synth_n_channels; i_channel++) {
+        channels[i_channel] = ek_channel_create(
+            n_voices_array[i_channel],
+            base_midi_note_array[i_channel]
+        );
+    }
     for (int i=0; i<N_CHANGE_FUNCTIONS; i++) {
         change_functions[i] = NULL;
     }
@@ -288,10 +301,12 @@ extern void ek_synth_change_parameter(uint16_t length, uint8_t *data) {
 }
 
 extern void ek_synth_button_on(uint8_t i_channel,int16_t i_button) {
+    if (i_channel>=synth_n_channels) return;
     ek_channel_button_on(channels[i_channel],i_button);
 }
 
 extern void ek_synth_button_off(uint8_t i_channel,int16_t i_button) {
+    if (i_channel>=synth_n_channels) return;
     ek_channel_button_off(channels[i_channel],i_button);
 }
 
@@ -309,7 +324,7 @@ extern void ek_synth_compute(
     }
     // LFO
     ek_lfo_compute(lfo,lfo_int32_buffer);
-    for (uint8_t i_channel=0; i_channel<N_CHANNELS; i_channel++) {
+    for (uint8_t i_channel=0; i_channel<synth_n_channels; i_channel++) {
         ek_channel_compute(channels[i_channel],lfo_int32_buffer,dry_int32_buffer,wet_int32_buffer);
     }
     ek_reverb_compute(dry_int32_buffer,wet_int32_buffer,output_l_int32_buffer,output_r_int32_buffer);
