@@ -2,10 +2,9 @@
 #include "ek_tables.h"
 
 struct ek_lfo_s {
+    const int16_t *table;
     uint32_t phase_increment;
     uint32_t phase;
-    const int16_t *table;
-    int32_t output[DMA_BUF_LEN];
 };
 
 extern ek_lfo_t ek_lfo_create() {
@@ -29,18 +28,16 @@ extern void ek_lfo_change_table(ek_lfo_t lfo, const int16_t *table) {
     lfo->table = table;
 }
 
-extern int32_t *ek_lfo_compute(ek_lfo_t lfo) {
-    uint32_t phase = lfo->phase;
-    uint32_t phase_increment = lfo->phase_increment;
+extern void ek_lfo_compute(ek_lfo_t lfo, int32_t output_int32_buffer[DMA_BUF_LEN]) {
     const int16_t *table = lfo->table;
-    int32_t *output = lfo->output;
+    uint32_t phase_increment = lfo->phase_increment;
+    uint32_t phase = lfo->phase;
 
    for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
-        output[i] = table[phase>>TABLE_PHASE_SHIFT];
+        output_int32_buffer[i] = table[phase>>TABLE_PHASE_SHIFT];
         phase += phase_increment;
     }
     lfo->phase = phase;
-    return output;
 }
 
 

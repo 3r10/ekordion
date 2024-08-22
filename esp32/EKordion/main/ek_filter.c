@@ -108,7 +108,7 @@ extern ek_filter_t ek_filter_create() {
 extern void ek_filter_compute(
     ek_filter_t filter, 
     ek_filter_parameters_t parameters,
-    int32_t *intput_output_int32_buffer
+    int32_t intput_output_int32_buffer[DMA_BUF_LEN]
 ) {
     int32_t x1 = filter->x1;
     int32_t x2 = filter->x2;
@@ -136,8 +136,8 @@ extern void ek_filter_compute(
 
 extern void ek_dynamic_filter_compute(
     ek_filter_t filter, ek_filter_parameters_t parameters,
-    int32_t *modulation_input_buffer,
-    int32_t *intput_output_int32_buffer
+    int32_t modulation_input_buffer[DMA_BUF_LEN],
+    int32_t intput_output_int32_buffer[DMA_BUF_LEN]
 ) {
     if (parameters->low_f_slider==255 && parameters->high_f_slider==255 ) {
         filter->x1 = intput_output_int32_buffer[DMA_BUF_LEN-1];

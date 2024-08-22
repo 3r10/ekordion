@@ -30,7 +30,7 @@ void ek_phasor_change_note(ek_phasor_t phasor, int16_t note) {
 }
 
 void ek_phasor_compute(ek_phasor_t phasor, int32_t output_int32_buffer[DMA_BUF_LEN]) {
-     uint32_t phase_increment = phasor->phase_increment;
+    uint32_t phase_increment = phasor->phase_increment;
 
     for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
         output_int32_buffer[i] = phase_increment;

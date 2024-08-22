@@ -68,8 +68,8 @@ extern ek_oscillator_t ek_oscillator_create() {
 extern void ek_oscillator_compute(
     ek_oscillator_t oscillator, 
     ek_oscillator_parameters_t parameters,
-    int32_t *phase_increment_int32_buffer,
-    int32_t *output_int32_buffer
+    int32_t phase_increment_int32_buffer[DMA_BUF_LEN],
+    int32_t output_int32_buffer[DMA_BUF_LEN]
 ) {
     const int16_t *table = parameters->table;
     int16_t resolution_mask = parameters->resolution_mask;

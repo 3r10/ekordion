@@ -14,13 +14,13 @@ ek_filter_t ek_filter_create();
 void ek_filter_compute(
     ek_filter_t filter, 
     ek_filter_parameters_t parameters,
-    int32_t *intput_output_int32_buffer
+    int32_t intput_output_int32_buffer[DMA_BUF_LEN]
 );
 void ek_dynamic_filter_compute(
     ek_filter_t filter, 
     ek_filter_parameters_t parameters,
-    int32_t *modulation_input_buffer,
-    int32_t *intput_output_int32_buffer
+    int32_t modulation_input_buffer[DMA_BUF_LEN],
+    int32_t intput_output_int32_buffer[DMA_BUF_LEN]
 );
 
 #endif

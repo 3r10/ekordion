@@ -299,8 +299,7 @@ extern void ek_synth_compute(
     int32_t output_l_int32_buffer[DMA_BUF_LEN],
     int32_t output_r_int32_buffer[DMA_BUF_LEN]
 ) {
-    int32_t *lfo_int32_buffer;
-    int32_t *channel_outputs[N_CHANNELS];
+    int32_t lfo_int32_buffer[DMA_BUF_LEN];
     static int32_t dry_int32_buffer[DMA_BUF_LEN];
     static int32_t wet_int32_buffer[DMA_BUF_LEN];
 
@@ -309,7 +308,7 @@ extern void ek_synth_compute(
         wet_int32_buffer[i] = 0;
     }
     // LFO
-    lfo_int32_buffer = ek_lfo_compute(lfo);
+    ek_lfo_compute(lfo,lfo_int32_buffer);
     for (uint8_t i_channel=0; i_channel<N_CHANNELS; i_channel++) {
         ek_channel_compute(channels[i_channel],lfo_int32_buffer,dry_int32_buffer,wet_int32_buffer);
     }

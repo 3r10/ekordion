@@ -34,9 +34,9 @@ void ek_channel_button_on(ek_channel_t channel, int16_t i_button);
 void ek_channel_button_off(ek_channel_t channel, int16_t i_button);
 void ek_channel_compute(    
     ek_channel_t channel,
-    int32_t *lfo_int32_buffer,
-    int32_t *input_output_dry_int32_buffer,
-    int32_t *input_output_wet_int32_buffer    
+    int32_t lfo_int32_buffer[DMA_BUF_LEN],
+    int32_t input_output_dry_int32_buffer[DMA_BUF_LEN],
+    int32_t input_output_wet_int32_buffer[DMA_BUF_LEN]    
 );
 
 #endif

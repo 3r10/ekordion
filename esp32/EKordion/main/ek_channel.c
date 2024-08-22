@@ -8,26 +8,31 @@
 #include "ek_filter.h"
 
 struct ek_channel_s {
+    // CREATION PARAMETERS
     uint8_t n_voices;
     uint8_t base_midi_note;
+    // DYNAMIC PARAMETERS (scalar)
     int8_t octave;
     uint8_t vibrato;
     uint8_t i_arpeggiator_pattern;
     uint16_t arpeggio_duration;
+    uint8_t tremolo;
+    uint8_t downsampling;
+    uint8_t dry_volume;
+    uint8_t wet_volume;
+    // DYNAMIC PARAMETERS (structured)
     ek_oscillator_parameters_t oscillator_parameters;
     ek_adsr_parameters_t envelope_parameters;
     ek_adsr_parameters_t filter_mod_parameters;
-    uint8_t tremolo;
-    uint8_t downsampling;
     ek_filter_parameters_t filter_parameters;
-    uint8_t dry_volume;
-    uint8_t wet_volume;
-    ek_phasor_t phasors[N_VOICES];
-    ek_arpeggiator_t arpeggiators[N_VOICES];
-    ek_oscillator_t oscillators[N_VOICES];
-    ek_adsr_t envelopes[N_VOICES];
-    ek_adsr_t filter_mods[N_VOICES];
-    ek_filter_t filters[N_VOICES];
+    // SIGNAL PROCESSING (arrays of structures)
+    ek_phasor_t *phasors;
+    ek_arpeggiator_t *arpeggiators;
+    ek_oscillator_t *oscillators;
+    ek_adsr_t *envelopes;
+    ek_adsr_t *filter_mods;
+    ek_filter_t *filters;
+    // STATE
     int32_t last_sample;
 };
 
@@ -58,23 +63,26 @@ extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) 
     channel->dry_volume = 200;
     channel->wet_volume = 100;
     channel->last_sample = 0;
-    for (uint8_t i_voice=0; i_voice<N_VOICES; i_voice++) {
-        if (i_voice<channel->n_voices) {
-            channel->phasors[i_voice] = ek_phasor_create();
-            channel->arpeggiators[i_voice] = ek_arpeggiator_create();
-            channel->oscillators[i_voice] = ek_oscillator_create();
-            channel->envelopes[i_voice] = ek_adsr_create();
-            channel->filter_mods[i_voice] = ek_adsr_create();
-            channel->filters[i_voice] = ek_filter_create();
-        }
-        else {
-            channel->phasors[i_voice] = NULL;
-            channel->arpeggiators[i_voice] = NULL;
-            channel->oscillators[i_voice] = NULL;
-            channel->envelopes[i_voice] = NULL;
-            channel->filter_mods[i_voice] = NULL;
-            channel->filters[i_voice] = NULL;
-        }
+    // SIGNAL PROCESSING ARRAYS ALLOCATION
+    channel->phasors = (ek_phasor_t *)malloc(n_voices*sizeof(ek_phasor_t));
+    channel->arpeggiators = (ek_arpeggiator_t *)malloc(n_voices*sizeof(ek_arpeggiator_t));
+    channel->oscillators = (ek_oscillator_t *)malloc(n_voices*sizeof(ek_oscillator_t));
+    channel->envelopes = (ek_adsr_t *)malloc(n_voices*sizeof(ek_adsr_t));
+    channel->filter_mods = (ek_adsr_t *)malloc(n_voices*sizeof(ek_adsr_t));
+    channel->filters = (ek_filter_t *)malloc(n_voices*sizeof(ek_filter_t));
+    if (
+        channel->phasors==NULL || channel->arpeggiators==NULL || channel->oscillators==NULL
+        || channel->envelopes==NULL || channel->filter_mods==NULL || channel->filters==NULL
+    ) {
+        return NULL;
+    }
+    for (uint8_t i_voice=0; i_voice<n_voices; i_voice++) {
+        channel->phasors[i_voice] = ek_phasor_create();
+        channel->arpeggiators[i_voice] = ek_arpeggiator_create();
+        channel->oscillators[i_voice] = ek_oscillator_create();
+        channel->envelopes[i_voice] = ek_adsr_create();
+        channel->filter_mods[i_voice] = ek_adsr_create();
+        channel->filters[i_voice] = ek_filter_create();
     }
     return channel;
 }
@@ -228,9 +236,9 @@ static void compute_vibrato(ek_channel_t channel, int32_t *lfo_int32_buffer, int
 
 extern void ek_channel_compute(
     ek_channel_t channel,
-    int32_t *lfo_int32_buffer,
-    int32_t *input_output_dry_int32_buffer,
-    int32_t *input_output_wet_int32_buffer    
+    int32_t lfo_int32_buffer[DMA_BUF_LEN],
+    int32_t input_output_dry_int32_buffer[DMA_BUF_LEN],
+    int32_t input_output_wet_int32_buffer[DMA_BUF_LEN]
 ) {
     int32_t output[DMA_BUF_LEN], phase_increment[DMA_BUF_LEN], voice_output[DMA_BUF_LEN];
     int32_t envelope_output[DMA_BUF_LEN], filter_mod_output[DMA_BUF_LEN];
