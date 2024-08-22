@@ -3,12 +3,6 @@
 #define ADSR_SHIFT_VALUE 22
 #define ADSR_MAXIMUM_VALUE (1<<30)
 
-#define STATE_IDLE    0
-#define STATE_ATTACK  1
-#define STATE_DECAY   2
-#define STATE_SUSTAIN 3
-#define STATE_RELEASE 4
-
 struct ek_adsr_parameters_s {
     int32_t delta_a;
     int32_t value_d;
@@ -71,16 +65,16 @@ extern ek_adsr_t ek_adsr_create() {
         return adsr;
     }
     adsr->value = 0;
-    adsr->state = STATE_IDLE;
+    adsr->state = ADSR_STATE_IDLE;
     return adsr;
 }
 
 extern int32_t ek_adsr_is_active(ek_adsr_t adsr) {
-    return adsr->state!=STATE_IDLE;
+    return adsr->state!=ADSR_STATE_IDLE;
 }
 
-extern void ek_adsr_compute(
-    ek_adsr_t adsr, uint8_t on_off,
+extern uint8_t ek_adsr_compute(
+    ek_adsr_t adsr, uint8_t is_on,
     ek_adsr_parameters_t parameters,
     int32_t output_int32_buffer[DMA_BUF_LEN]
 ) {
@@ -91,35 +85,36 @@ extern void ek_adsr_compute(
     int32_t value = adsr->value;
     uint16_t i;
 
-    if (on_off) {
+    if (is_on) {
         switch (adsr->state) {
-        case STATE_IDLE:
-            adsr->state = STATE_ATTACK;
-        case STATE_ATTACK:
+        case ADSR_STATE_RELEASE:
+        case ADSR_STATE_IDLE:
+            adsr->state = ADSR_STATE_ATTACK;
+        case ADSR_STATE_ATTACK:
             for (i=0; i<DMA_BUF_LEN && value<ADSR_MAXIMUM_VALUE; i++) {
                 output_int32_buffer[i] = value;
                 value += delta_a;
             }
             if (i<DMA_BUF_LEN) {
-                adsr->state = STATE_DECAY;
+                adsr->state = ADSR_STATE_DECAY;
             }
             for (; i<DMA_BUF_LEN; i++) {
                 output_int32_buffer[i] = ADSR_MAXIMUM_VALUE;
             }
             break;
-        case STATE_DECAY:
+        case ADSR_STATE_DECAY:
             for (i=0; i<DMA_BUF_LEN && value>value_s; i++) {
                 output_int32_buffer[i] = value;
                 value -= delta_d;
             }
             if (i<DMA_BUF_LEN) {
-                adsr->state = STATE_SUSTAIN;
+                adsr->state = ADSR_STATE_SUSTAIN;
             }
             for (; i<DMA_BUF_LEN; i++) {
                 output_int32_buffer[i] = value_s;
             }
             break;
-        case STATE_SUSTAIN:
+        case ADSR_STATE_SUSTAIN:
             for (i=0; i<DMA_BUF_LEN; i++) {
                 output_int32_buffer[i] = value_s;
             }
@@ -131,36 +126,29 @@ extern void ek_adsr_compute(
     }
     else {
         switch (adsr->state) {
-        case STATE_IDLE:
+        case ADSR_STATE_IDLE:
             for (i=0; i<DMA_BUF_LEN; i++) {
                 output_int32_buffer[i] = 0;
             }
             break;
-        case STATE_ATTACK:
-        case STATE_DECAY:
-            if (delta_d>delta_r) {
-                delta_r = delta_d;
+        case ADSR_STATE_ATTACK:
+        case ADSR_STATE_DECAY:
+        case ADSR_STATE_SUSTAIN:
+            adsr->state = ADSR_STATE_RELEASE;
+        case ADSR_STATE_RELEASE:
+            if (delta_r>delta_d) {
+                delta_d = delta_r;
             }
             for (i=0; i<DMA_BUF_LEN && value>value_s; i++) {
                 output_int32_buffer[i] = value;
-                value -= delta_r;
+                value -= delta_d;
             }
-            if (i<DMA_BUF_LEN) {
-                adsr->state = STATE_RELEASE;
-            }
-            for (; i<DMA_BUF_LEN; i++) {
-                output_int32_buffer[i] = value_s;
-            }
-            break;
-        case STATE_SUSTAIN:
-            adsr->state = STATE_RELEASE;
-        case STATE_RELEASE:
-            for (i=0; i<DMA_BUF_LEN && value>0; i++) {
+            for (; i<DMA_BUF_LEN && value>0; i++) {
                 output_int32_buffer[i] = value;
                 value -= delta_r;
             }
             if (i<DMA_BUF_LEN) {
-                adsr->state = STATE_IDLE;
+                adsr->state = ADSR_STATE_IDLE;
             }
             for (; i<DMA_BUF_LEN; i++) {
                 output_int32_buffer[i] = 0;
@@ -168,6 +156,7 @@ extern void ek_adsr_compute(
         }
     }
     adsr->value = output_int32_buffer[DMA_BUF_LEN-1];
+    return adsr->state;
 }
 
 

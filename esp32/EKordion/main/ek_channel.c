@@ -1,6 +1,6 @@
 #include <string.h>
 #include "ek_channel.h"
-#include "ek_phasor.h"
+#include "ek_monopoly.h"
 #include "ek_arpeggiator.h"
 #include "ek_oscillator.h"
 #include "ek_tables.h"
@@ -8,11 +8,9 @@
 #include "ek_filter.h"
 
 struct ek_channel_s {
-    // CREATION PARAMETERS
     uint8_t n_voices;
-    uint8_t base_midi_note;
+    ek_monopoly_t monopoly;
     // DYNAMIC PARAMETERS (scalar)
-    int8_t octave;
     uint8_t vibrato;
     uint8_t i_arpeggiator_pattern;
     uint16_t arpeggio_duration;
@@ -26,7 +24,6 @@ struct ek_channel_s {
     ek_adsr_parameters_t filter_mod_parameters;
     ek_filter_parameters_t filter_parameters;
     // SIGNAL PROCESSING (arrays of structures)
-    ek_phasor_t *phasors;
     ek_arpeggiator_t *arpeggiators;
     ek_oscillator_t *oscillators;
     ek_adsr_t *envelopes;
@@ -36,10 +33,6 @@ struct ek_channel_s {
     int32_t last_sample;
 };
 
-static void change_voice_midi_note(ek_channel_t channel,uint8_t i_voice) {
-    ek_phasor_actualize(channel->phasors[i_voice],channel->base_midi_note+12*channel->octave);
-}
-
 extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) {
     ek_channel_t channel = (ek_channel_t)malloc(sizeof(struct ek_channel_s));
 
@@ -48,9 +41,8 @@ extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) 
         return channel;
     }
     // CHANNELS
-    channel->base_midi_note = base_midi_note;
-    channel->octave = 0;
     channel->n_voices = n_voices;
+    channel->monopoly = ek_monopoly_create(n_voices,base_midi_note);
     channel->vibrato = 0;
     channel->i_arpeggiator_pattern = 0;
     channel->arpeggio_duration = SAMPLE_RATE;
@@ -64,20 +56,19 @@ extern ek_channel_t ek_channel_create(uint8_t n_voices, uint8_t base_midi_note) 
     channel->wet_volume = 100;
     channel->last_sample = 0;
     // SIGNAL PROCESSING ARRAYS ALLOCATION
-    channel->phasors = (ek_phasor_t *)malloc(n_voices*sizeof(ek_phasor_t));
     channel->arpeggiators = (ek_arpeggiator_t *)malloc(n_voices*sizeof(ek_arpeggiator_t));
     channel->oscillators = (ek_oscillator_t *)malloc(n_voices*sizeof(ek_oscillator_t));
     channel->envelopes = (ek_adsr_t *)malloc(n_voices*sizeof(ek_adsr_t));
     channel->filter_mods = (ek_adsr_t *)malloc(n_voices*sizeof(ek_adsr_t));
     channel->filters = (ek_filter_t *)malloc(n_voices*sizeof(ek_filter_t));
     if (
-        channel->phasors==NULL || channel->arpeggiators==NULL || channel->oscillators==NULL
-        || channel->envelopes==NULL || channel->filter_mods==NULL || channel->filters==NULL
+        channel->arpeggiators==NULL || channel->oscillators==NULL
+        || channel->envelopes==NULL || channel->filter_mods==NULL 
+        || channel->filters==NULL
     ) {
         return NULL;
     }
     for (uint8_t i_voice=0; i_voice<n_voices; i_voice++) {
-        channel->phasors[i_voice] = ek_phasor_create();
         channel->arpeggiators[i_voice] = ek_arpeggiator_create();
         channel->oscillators[i_voice] = ek_oscillator_create();
         channel->envelopes[i_voice] = ek_adsr_create();
@@ -100,10 +91,7 @@ extern void ek_channel_change_downsampling(ek_channel_t channel, uint8_t downsam
 }
 
 extern void ek_channel_change_octave(ek_channel_t channel, int8_t octave) {
-    channel->octave = octave;
-    for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        change_voice_midi_note(channel,i_voice);
-    }
+    ek_monopoly_change_octave(channel->monopoly,octave);
 }
 
 extern void ek_channel_change_n_oscillators(ek_channel_t channel, uint8_t n_oscillators) {
@@ -182,48 +170,12 @@ extern void ek_channel_change_wet_volume(ek_channel_t channel, uint8_t volume) {
     channel->wet_volume = volume;
 }
 
-static int8_t search_active_voice(ek_channel_t channel, int16_t i_button) {
-    for (int8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        if (ek_phasor_get_note(channel->phasors[i_voice])==i_button) {
-            return i_voice;
-        }
-    }
-    return -1;
-}
-
-static int8_t search_inactive_voice(ek_channel_t channel) {
-    for (int8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        if (
-            ek_phasor_get_note(channel->phasors[i_voice])==-1 
-            && ek_adsr_is_active(channel->envelopes[i_voice])==0
-            && ek_adsr_is_active(channel->filter_mods[i_voice])==0
-        ) {
-            return i_voice;
-        }
-    }
-    return -1;
-}
-
 extern void ek_channel_button_on(ek_channel_t channel, int16_t i_button) {
-    int8_t i_voice = search_active_voice(channel,i_button);
-    if (i_voice==-1) {
-        i_voice = search_inactive_voice(channel);
-    }
-    if (i_voice==-1) {
-        return;
-    }
-    ESP_LOGI(TAG, "Channel : Button %d ON",i_button);
-    ek_phasor_change_note(channel->phasors[i_voice],i_button);
-    change_voice_midi_note(channel,i_voice);
+    ek_monopoly_button_on(channel->monopoly,i_button);
 }
 
 extern void ek_channel_button_off(ek_channel_t channel, int16_t i_button) {
-    int8_t i_voice = search_active_voice(channel,i_button);
-    if (i_voice==-1) {
-        return;
-    }
-    ESP_LOGI(TAG, "Channel : Button %d OFF",i_button);
-    ek_phasor_change_note(channel->phasors[i_voice],-1);
+    ek_monopoly_button_off(channel->monopoly,i_button);
 }
 
 static void compute_vibrato(ek_channel_t channel, int32_t *lfo_int32_buffer, int32_t *input_output_int32_buffer) {
@@ -250,13 +202,11 @@ extern void ek_channel_compute(
         output[i] = 0;
     }
     for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
-        uint8_t on_off = ek_phasor_get_note(channel->phasors[i_voice])!=-1;
-        if (
-            on_off 
-            || ek_adsr_is_active(channel->envelopes[i_voice]) 
-            || ek_adsr_is_active(channel->filter_mods[i_voice])
-        ) {
-            ek_phasor_compute(channel->phasors[i_voice],phase_increment);
+        if (ek_monopoly_is_voice_active(channel->monopoly,i_voice)) {
+            uint32_t increment = ek_monopoly_get_voice_phase_increment(channel->monopoly,i_voice);
+            for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
+                phase_increment[i] = increment;
+            }
             if (channel->vibrato) {
                 compute_vibrato(channel,lfo_int32_buffer,phase_increment);
             }
@@ -273,14 +223,20 @@ extern void ek_channel_compute(
                 channel->oscillator_parameters,
                 phase_increment,voice_output
             );
-            ek_adsr_compute(
-                channel->envelopes[i_voice],on_off,
+            uint8_t is_on = ek_monopoly_is_voice_on(channel->monopoly,i_voice);
+            uint8_t envelope_state = ek_adsr_compute(
+                channel->envelopes[i_voice],is_on,
                 channel->envelope_parameters,
                 envelope_output
             );
-            ek_adsr_compute(channel->filter_mods[i_voice],on_off,
-            channel->filter_mod_parameters,
-            filter_mod_output);
+            uint8_t filter_mod_state = ek_adsr_compute(
+                channel->filter_mods[i_voice],is_on,
+                channel->filter_mod_parameters,
+                filter_mod_output
+            );
+            if (envelope_state==ADSR_STATE_IDLE && filter_mod_state==ADSR_STATE_IDLE) {
+                ek_monopoly_deactivate_voice(channel->monopoly,i_voice);
+            }
             ek_dynamic_filter_compute(channel->filters[i_voice], channel->filter_parameters, filter_mod_output, voice_output);
             for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
                 output[i] += (voice_output[i]*(envelope_output[i]>>16))>>9;
