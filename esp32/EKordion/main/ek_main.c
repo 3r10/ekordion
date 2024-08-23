@@ -58,7 +58,7 @@ void keyboards_task(void *userData)
 void app_main(void)
 {
     uint8_t n_channels = 3;
-    uint8_t n_voices_array[3] = {2,2,12}; // bass=2, chords=2, lead=12
+    uint8_t n_voices_array[3] = {2,4,12}; // bass=2, chords=4, lead=12
     uint8_t base_midi_note_array[3] = {46,58,59}; // Bb2, Bb3, B3
 
     ek_i2s_init();

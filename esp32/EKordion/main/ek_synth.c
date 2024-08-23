@@ -17,6 +17,20 @@ static void change_custom_table(uint16_t length, uint8_t *data) {
     memcpy(tables[0]+offset,data+1,CHANGE_TABLE_OFFSET*sizeof(uint16_t));
 }
 
+static void change_tonality(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    for (uint8_t i_channel=0; i_channel<synth_n_channels; i_channel++) {
+        ek_channel_change_tonality(channels[i_channel],data[0]);
+    }
+}
+
+static void change_chord_pattern(uint16_t length, uint8_t *data) {
+    if (length!=1) return;
+    for (uint8_t i_channel=0; i_channel<synth_n_channels; i_channel++) {
+        ek_channel_change_chord_pattern(channels[i_channel],data[0]);
+    }
+}
+
 static void change_lfo_frequency(uint16_t length, uint8_t *data) {
     if (length!=1) return;
     ek_lfo_change_phase_increment(lfo,3820*(uint32_t)data[0]);
@@ -271,6 +285,8 @@ extern void ek_synth_init(
         change_functions[i] = NULL;
     }
     change_functions[CHANGE_CUSTOM_TABLE] = &change_custom_table;
+    change_functions[CHANGE_TONALITY] = &change_tonality;
+    change_functions[CHANGE_CHORD_PATTERN] = &change_chord_pattern;
     change_functions[CHANGE_LFO_TABLE] = &change_lfo_table;
     change_functions[CHANGE_LFO_FREQUENCY] = &change_lfo_frequency;
     change_functions[CHANGE_REVERB_FEEDBACK] = &ek_reverb_change_feedback;

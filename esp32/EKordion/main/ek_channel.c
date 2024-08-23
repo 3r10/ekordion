@@ -98,6 +98,15 @@ extern void ek_channel_change_monopoly_mode(ek_channel_t channel, uint8_t mode) 
     ek_monopoly_change_mode(channel->monopoly,mode);
 }
 
+void ek_channel_change_tonality(ek_channel_t channel, uint8_t tonality) {
+    ek_monopoly_change_tonality(channel->monopoly, tonality);
+}
+
+void ek_channel_change_chord_pattern(ek_channel_t channel, uint8_t i_chord_pattern) {
+    ek_monopoly_change_chord_pattern(channel->monopoly, i_chord_pattern);
+}
+
+
 extern void ek_channel_change_n_oscillators(ek_channel_t channel, uint8_t n_oscillators) {
     ek_oscillator_parameters_change_n_oscillators(channel->oscillator_parameters,n_oscillators);
 }
@@ -108,6 +117,7 @@ extern void ek_channel_change_detune_factor(ek_channel_t channel, uint8_t detune
 
 extern void ek_channel_change_arpeggio_duration(ek_channel_t channel, uint16_t arpeggio_duration) {
     channel->arpeggio_duration = arpeggio_duration;
+    ek_monopoly_change_arpeggio_duration(channel->monopoly,arpeggio_duration);
 }
 
 extern void ek_channel_change_arpeggiator_pattern(ek_channel_t channel, uint8_t i_pattern) {
@@ -205,6 +215,7 @@ extern void ek_channel_compute(
     for (uint16_t i=0; i<DMA_BUF_LEN; i++) {
         output[i] = 0;
     }
+    ek_monopoly_compute(channel->monopoly);
     for (uint8_t i_voice=0; i_voice<channel->n_voices; i_voice++) {
         if (ek_monopoly_is_voice_active(channel->monopoly,i_voice)) {
             uint32_t increment = ek_monopoly_get_voice_phase_increment(channel->monopoly,i_voice);

@@ -41,35 +41,37 @@ import java.util.UUID
 
 // import com.example.test2.ui.theme.Test2Theme
 
-const val CHANGE_LFO_TABLE = 1;
-const val CHANGE_LFO_FREQUENCY = 2;
-const val CHANGE_REVERB_FEEDBACK = 3;
-const val CHANGE_REVERB_DAMPING = 4;
-const val CHANGE_REVERB_VOLUME = 5;
-const val CHANGE_WAVETABLE = 6;
-const val CHANGE_RESOLUTION = 7;
-const val CHANGE_DOWNSAMPLING = 8;
-const val CHANGE_OCTAVE = 9;
-const val CHANGE_MONOPOLY_MODE = 10;
-const val CHANGE_ARPEGGIO_DURATION = 11;
-const val CHANGE_ARPEGGIATOR = 12;
-const val CHANGE_VIBRATO = 13;
-const val CHANGE_N_OSCILLATORS = 14;
-const val CHANGE_DETUNE_FACTOR = 15;
-const val CHANGE_ENVELOPE_A = 16;
-const val CHANGE_ENVELOPE_D = 17;
-const val CHANGE_ENVELOPE_S = 18;
-const val CHANGE_ENVELOPE_R = 19;
-const val CHANGE_FILTER_LOW_F = 20;
-const val CHANGE_FILTER_HIGH_F = 21;
-const val CHANGE_FILTER_Q = 22;
-const val CHANGE_FILTER_MOD_A = 23;
-const val CHANGE_FILTER_MOD_D = 24;
-const val CHANGE_FILTER_MOD_S = 25;
-const val CHANGE_FILTER_MOD_R = 26;
-const val CHANGE_TREMOLO = 27;
-const val CHANGE_DRY_VOLUME = 28;
-const val CHANGE_WET_VOLUME = 29;
+const val CHANGE_TONALITY = 1;
+const val CHANGE_CHORD_PATTERN = 2;
+const val CHANGE_LFO_TABLE = 3;
+const val CHANGE_LFO_FREQUENCY = 4;
+const val CHANGE_REVERB_FEEDBACK = 5;
+const val CHANGE_REVERB_DAMPING = 6;
+const val CHANGE_REVERB_VOLUME = 7;
+const val CHANGE_TABLE = 8;
+const val CHANGE_RESOLUTION = 9;
+const val CHANGE_DOWNSAMPLING = 10;
+const val CHANGE_OCTAVE = 11;
+const val CHANGE_MONOPOLY_MODE = 12;
+const val CHANGE_ARPEGGIO_DURATION = 13;
+const val CHANGE_ARPEGGIATOR = 14;
+const val CHANGE_VIBRATO = 15;
+const val CHANGE_N_OSCILLATORS = 16;
+const val CHANGE_DETUNE_FACTOR = 17;
+const val CHANGE_ENVELOPE_A = 18;
+const val CHANGE_ENVELOPE_D = 19;
+const val CHANGE_ENVELOPE_S = 20;
+const val CHANGE_ENVELOPE_R = 21;
+const val CHANGE_FILTER_LOW_F = 22;
+const val CHANGE_FILTER_HIGH_F = 23;
+const val CHANGE_FILTER_Q = 24;
+const val CHANGE_FILTER_MOD_A = 25;
+const val CHANGE_FILTER_MOD_D = 26;
+const val CHANGE_FILTER_MOD_S = 27;
+const val CHANGE_FILTER_MOD_R = 28;
+const val CHANGE_TREMOLO = 29;
+const val CHANGE_DRY_VOLUME = 30;
+const val CHANGE_WET_VOLUME = 31;
 
 const val CHANNEL_BASS = 0;
 const val CHANNEL_CHORDS = 1;
@@ -216,11 +218,11 @@ class MainActivity : ComponentActivity() {
     @Composable
     private fun EKChannelInterface(title: String, channel: Int) {
         EKTitle(title)
-        EKTablePicker(title = "Wavetable", id = CHANGE_WAVETABLE, channel = channel)
+        EKTablePicker(title = "Wavetable", id = CHANGE_TABLE, channel = channel)
         EKSlider(title = "Resolution", id = CHANGE_RESOLUTION, channel = channel, maxValue = 15, initialValue = 0)
         EKSlider(title = "Downsampling", id = CHANGE_DOWNSAMPLING, channel = channel, maxValue = 31, initialValue = 0)
         EKSlider(title = "Octave", id = CHANGE_OCTAVE, channel = channel, maxValue = 6, initialValue = 3)
-        EKSlider(title = "Monopoly mode", id = CHANGE_MONOPOLY_MODE, channel = channel, maxValue = 1, initialValue = 0)
+        EKSlider(title = "Monopoly mode", id = CHANGE_MONOPOLY_MODE, channel = channel, maxValue = 10, initialValue = 0)
         EKSlider(title = "Arpeggio duration", id = CHANGE_ARPEGGIO_DURATION, channel = channel, maxValue = 255, initialValue = 0)
         EKSlider(title = "Arpeggiator", id = CHANGE_ARPEGGIATOR, channel = channel, maxValue = 7, initialValue = 0)
         EKSlider(title = "Vibrato", id = CHANGE_VIBRATO, channel = channel, maxValue = 255, initialValue = 0)
@@ -289,6 +291,9 @@ class MainActivity : ComponentActivity() {
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
+            EKTitle("Harmonization")
+            EKSlider(title = "Tonality", id = CHANGE_TONALITY, channel = -1, maxValue = 11, initialValue = 0)
+            EKSlider(title = "Chord pattern", id = CHANGE_CHORD_PATTERN, channel = -1, maxValue = 2, initialValue = 0)
             EKTitle("LFO")
             EKTablePicker(title = "Table", id = CHANGE_LFO_TABLE, channel = -1)
             EKSlider(title = "Frequency", id = CHANGE_LFO_FREQUENCY, channel = -1, maxValue = 255, initialValue = 50)

@@ -11,6 +11,8 @@ void ek_channel_change_resolution_mask(ek_channel_t channel, int16_t resolution_
 void ek_channel_change_downsampling(ek_channel_t channel, uint8_t downsampling);
 void ek_channel_change_octave(ek_channel_t channel, int8_t octave);
 void ek_channel_change_monopoly_mode(ek_channel_t channel, uint8_t mode);
+void ek_channel_change_tonality(ek_channel_t channel, uint8_t tonality);
+void ek_channel_change_chord_pattern(ek_channel_t channel, uint8_t i_chord_pattern);
 void ek_channel_change_n_oscillators(ek_channel_t channel, uint8_t n_oscillators);
 void ek_channel_change_detune_factor(ek_channel_t channel, uint8_t detune_factor);
 void ek_channel_change_arpeggio_duration(ek_channel_t channel, uint16_t arpeggio_duration);
